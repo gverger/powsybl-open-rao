@@ -87,10 +87,6 @@ public final class StandardRangeActionDeserializer {
                 jsonParser.nextToken();
                 OnFlowConstraintInCountryArrayDeserializer.deserialize(jsonParser, standardRangeActionAdder, version);
                 break;
-            case JsonSerializationConstants.ON_SWITCH_STATE_USAGE_RULES:
-                jsonParser.nextToken();
-                OnSwitchStateArrayDeserializer.deserialize(jsonParser, standardRangeActionAdder, version);
-                break;
             case JsonSerializationConstants.AND_USAGE_RULES:
                 jsonParser.nextToken();
                 AndUsageRuleArrayDeserializer.deserialize(jsonParser, standardRangeActionAdder, version);

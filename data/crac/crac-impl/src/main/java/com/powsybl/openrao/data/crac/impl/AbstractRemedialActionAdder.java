@@ -16,7 +16,6 @@ import com.powsybl.openrao.data.crac.api.usagerule.OnConstraintAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyStateAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountryAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnInstantAdder;
-import com.powsybl.openrao.data.crac.api.usagerule.OnSwitchStateAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRuleAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.UsageRule;
 
@@ -77,11 +76,6 @@ public abstract class AbstractRemedialActionAdder<T extends RemedialActionAdder<
     @Override
     public OnFlowConstraintInCountryAdder<T> newOnFlowConstraintInCountryUsageRule() {
         return new OnFlowConstraintInCountryAdderImpl(this);
-    }
-
-    @Override
-    public OnSwitchStateAdder<T> newOnSwitchStateUsageRule() {
-        return new OnSwitchStateAdderImpl(this);
     }
 
     @Override

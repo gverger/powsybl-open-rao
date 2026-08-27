@@ -78,10 +78,6 @@ public final class PstRangeActionArrayDeserializer {
                         jsonParser.nextToken();
                         OnFlowConstraintInCountryArrayDeserializer.deserialize(jsonParser, pstRangeActionAdder, version);
                         break;
-                    case JsonSerializationConstants.ON_SWITCH_STATE_USAGE_RULES:
-                        jsonParser.nextToken();
-                        OnSwitchStateArrayDeserializer.deserialize(jsonParser, pstRangeActionAdder, version);
-                        break;
                     case JsonSerializationConstants.AND_USAGE_RULES:
                         jsonParser.nextToken();
                         AndUsageRuleArrayDeserializer.deserialize(jsonParser, pstRangeActionAdder, version);
