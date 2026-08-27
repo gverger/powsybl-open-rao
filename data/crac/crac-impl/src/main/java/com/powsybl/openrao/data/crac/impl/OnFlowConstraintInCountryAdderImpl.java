@@ -21,7 +21,7 @@ import static com.powsybl.openrao.data.crac.impl.AdderUtils.assertAttributeNotNu
 /**
  * @author Peter Mitri {@literal <peter.mitri at rte-france.com>}
  */
-public class OnFlowConstraintInCountryAdderImpl<T extends AbstractRemedialActionAdder<T>> implements OnFlowConstraintInCountryAdder<T> {
+public class OnFlowConstraintInCountryAdderImpl<T extends UsageRuleGateAdderOwner> implements OnFlowConstraintInCountryAdder<T> {
 
     public static final String ON_FLOW_CONSTRAINT_IN_COUNTRY = "OnFlowConstraintInCountry";
     private T owner;
@@ -29,7 +29,7 @@ public class OnFlowConstraintInCountryAdderImpl<T extends AbstractRemedialAction
     private String contingencyId;
     private Country country;
 
-    OnFlowConstraintInCountryAdderImpl(AbstractRemedialActionAdder<T> owner) {
+    OnFlowConstraintInCountryAdderImpl(UsageRuleGateAdderOwner owner) {
         this.owner = (T) owner;
     }
 

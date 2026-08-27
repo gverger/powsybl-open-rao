@@ -11,10 +11,13 @@ import com.powsybl.openrao.commons.OpenRaoException;
 import com.powsybl.openrao.data.crac.api.Instant;
 import com.powsybl.openrao.data.crac.api.RemedialActionAdder;
 import com.powsybl.openrao.data.crac.api.cnec.Cnec;
+import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRuleAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnConstraintAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyStateAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountryAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnInstantAdder;
+import com.powsybl.openrao.data.crac.api.usagerule.OnSwitchStateAdder;
+import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRuleAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.UsageRule;
 
 import java.util.HashSet;
@@ -25,7 +28,7 @@ import java.util.Set;
  * @author Peter Mitri {@literal <peter.mitri at rte-france.com>}
  * @author Baptiste Seguinot {@literal <baptiste.seguinot at rte-france.com>}
  */
-public abstract class AbstractRemedialActionAdder<T extends RemedialActionAdder<T>> extends AbstractIdentifiableAdder<T> implements RemedialActionAdder<T> {
+public abstract class AbstractRemedialActionAdder<T extends RemedialActionAdder<T>> extends AbstractIdentifiableAdder<T> implements RemedialActionAdder<T>, UsageRuleGateAdderOwner {
 
     protected String operator;
     protected Integer speed;
@@ -76,11 +79,28 @@ public abstract class AbstractRemedialActionAdder<T extends RemedialActionAdder<
         return new OnFlowConstraintInCountryAdderImpl(this);
     }
 
-    void addUsageRule(UsageRule usageRule) {
+    @Override
+    public OnSwitchStateAdder<T> newOnSwitchStateUsageRule() {
+        return new OnSwitchStateAdderImpl(this);
+    }
+
+    @Override
+    public AndUsageRuleAdder<T> newAndUsageRule() {
+        return new AndUsageRuleAdderImpl(this);
+    }
+
+    @Override
+    public OrUsageRuleAdder<T> newOrUsageRule() {
+        return new OrUsageRuleAdderImpl(this);
+    }
+
+    @Override
+    public void addUsageRule(UsageRule usageRule) {
         this.usageRules.add(usageRule);
     }
 
-    CracImpl getCrac() {
+    @Override
+    public CracImpl getCrac() {
         return this.crac;
     }
 

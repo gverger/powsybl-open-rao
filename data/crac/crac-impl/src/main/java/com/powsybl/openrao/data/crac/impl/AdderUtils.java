@@ -8,9 +8,13 @@
 package com.powsybl.openrao.data.crac.impl;
 
 import com.powsybl.openrao.commons.OpenRaoException;
+import com.powsybl.openrao.data.crac.api.Instant;
+import com.powsybl.openrao.data.crac.api.usagerule.UsageRule;
 
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Baptiste Seguinot {@literal <baptiste.seguinot at rte-france.com>}
@@ -32,5 +36,21 @@ public final class AdderUtils {
             throw new OpenRaoException(String.format("Cannot add %s without a %s. Please use %s", className, attributeDescription, methodName));
             // example: "Cannot add a InjectionShiftRangeAction without an injectionShiftKey. Please use withNetworkElementAndKey()."
         }
+    }
+
+    /**
+     * Checks that a gate logic combination (AndUsageRule/OrUsageRule) has at least one child UsageRule,
+     * and that all its children share the same Instant, then returns that shared Instant.
+     */
+    static Instant checkAndGetSharedInstant(Set<UsageRule> usageRules, String className) {
+        assertAttributeNotEmpty(usageRules, className, "usage rule", "newOnInstantUsageRule(), newOnContingencyStateUsageRule(), newOnConstraintUsageRule(), newOnFlowConstraintInCountryUsageRule(), newOnSwitchStateUsageRule(), newAndUsageRule() or newOrUsageRule()");
+        Set<Instant> instants = usageRules.stream().map(UsageRule::getInstant).collect(Collectors.toSet());
+        if (instants.size() > 1) {
+            throw new OpenRaoException(String.format(
+                "Cannot add %s: all the combined usage rules must share the same instant, but found: %s.",
+                className,
+                instants.stream().map(Instant::getId).sorted().collect(Collectors.joining(", "))));
+        }
+        return instants.iterator().next();
     }
 }

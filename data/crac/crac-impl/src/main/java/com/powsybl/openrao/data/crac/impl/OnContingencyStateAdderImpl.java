@@ -22,14 +22,14 @@ import static com.powsybl.openrao.data.crac.impl.AdderUtils.assertAttributeNotNu
  * @author Peter Mitri {@literal <peter.mitri at rte-france.com>}
  * @author Baptiste Seguinot {@literal <baptiste.seguinot at rte-france.com>}
  */
-public class OnContingencyStateAdderImpl<T extends AbstractRemedialActionAdder<T>> implements OnContingencyStateAdder<T> {
+public class OnContingencyStateAdderImpl<T extends UsageRuleGateAdderOwner> implements OnContingencyStateAdder<T> {
 
     private T owner;
     private String instantId;
     private String contingencyId;
     private static final String CLASS_NAME = "OnContingencyState";
 
-    OnContingencyStateAdderImpl(AbstractRemedialActionAdder<T> owner) {
+    OnContingencyStateAdderImpl(UsageRuleGateAdderOwner owner) {
         this.owner = (T) owner;
     }
 

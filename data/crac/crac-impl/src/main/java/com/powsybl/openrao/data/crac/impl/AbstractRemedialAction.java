@@ -14,9 +14,11 @@ import com.powsybl.openrao.data.crac.api.RemedialAction;
 import com.powsybl.openrao.data.crac.api.State;
 import com.powsybl.openrao.data.crac.api.cnec.Cnec;
 import com.powsybl.openrao.data.crac.api.cnec.FlowCnec;
+import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.OnConstraint;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyStateAdderToRemedialAction;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountry;
+import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.UsageRule;
 
 import java.util.HashSet;
@@ -24,6 +26,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Business object of a group of elementary remedial actions (range or network action).
@@ -75,13 +78,16 @@ public abstract class AbstractRemedialAction<I extends RemedialAction<I>> extend
 
     /**
      * Retrieves cnecs associated to the remedial action's OnFlowConstraint and OnFlowConstraintInCountry usage rules.
+     * OnConstraint/OnFlowConstraintInCountry rules nested inside a gate logic combination (AndUsageRule/OrUsageRule)
+     * are unfolded and considered too, since they still carry a Cnec/country that must be taken into account here,
+     * regardless of the fact that they are not, individually, top-level members of getUsageRules().
      */
     // TODO: move this method to RaoUtil
     public Set<FlowCnec> getFlowCnecsConstrainingUsageRules(Set<FlowCnec> perimeterCnecs, Network network, State optimizedState) {
         Set<FlowCnec> toBeConsideredCnecs = new HashSet<>();
         Set<UsageRule> usageRulesOnFlowConstraint = new HashSet<>();
-        usageRulesOnFlowConstraint.addAll(getUsageRules(OnConstraint.class, optimizedState).stream().filter(onConstraint -> onConstraint.getCnec() instanceof FlowCnec).toList());
-        usageRulesOnFlowConstraint.addAll(getUsageRules(OnFlowConstraintInCountry.class, optimizedState));
+        usageRulesOnFlowConstraint.addAll(getLeafUsageRules(OnConstraint.class, optimizedState).stream().filter(onConstraint -> onConstraint.getCnec() instanceof FlowCnec).toList());
+        usageRulesOnFlowConstraint.addAll(getLeafUsageRules(OnFlowConstraintInCountry.class, optimizedState));
         usageRulesOnFlowConstraint.forEach(usageRule -> toBeConsideredCnecs.addAll(getFlowCnecsConstrainingForOneUsageRule(usageRule, perimeterCnecs, network)));
         return toBeConsideredCnecs;
     }
@@ -100,12 +106,37 @@ public abstract class AbstractRemedialAction<I extends RemedialAction<I>> extend
         }
     }
 
-    private <T extends UsageRule> List<T> getUsageRules(Class<T> usageRuleClass, State state) {
+    /**
+     * Returns the leaf UsageRules of the given type that are defined for the given state, unfolding any
+     * AndUsageRule/OrUsageRule gate logic combination in the process. The returned UsageRules are leaves:
+     * they carry the type-specific data (e.g. a Cnec) that this class needs, but are not necessarily
+     * members of {@link #getUsageRules()} themselves when they come from inside a gate logic combination.
+     * This is intentional and only correct for that purpose (extracting Cnec/country references) -
+     * do not reuse this method where the root, top-level UsageRule is expected (e.g. to identify which
+     * of the RemedialAction's own UsageRules is responsible for its availability at a given state).
+     */
+    private <T extends UsageRule> List<T> getLeafUsageRules(Class<T> usageRuleClass, State state) {
         return getUsageRules().stream()
+            .flatMap(AbstractRemedialAction::flattenGateLogicUsageRules)
             .filter(usageRuleClass::isInstance)
             .map(usageRuleClass::cast)
             .filter(usageRule -> usageRule.isDefinedForState(state))
             .toList();
+    }
+
+    /**
+     * Recursively unfolds AndUsageRule/OrUsageRule gate logic combinations into the leaf UsageRules
+     * they combine, so that a leaf UsageRule nested inside a gate logic combination (e.g. an OnConstraint
+     * combined with other UsageRules through an AndUsageRule or an OrUsageRule) is still found.
+     */
+    private static Stream<UsageRule> flattenGateLogicUsageRules(UsageRule usageRule) {
+        if (usageRule instanceof AndUsageRule andUsageRule) {
+            return andUsageRule.getUsageRules().stream().flatMap(AbstractRemedialAction::flattenGateLogicUsageRules);
+        } else if (usageRule instanceof OrUsageRule orUsageRule) {
+            return orUsageRule.getUsageRules().stream().flatMap(AbstractRemedialAction::flattenGateLogicUsageRules);
+        } else {
+            return Stream.of(usageRule);
+        }
     }
 
     private static boolean isCnecInCountry(Cnec<?> cnec, Country country, Network network) {

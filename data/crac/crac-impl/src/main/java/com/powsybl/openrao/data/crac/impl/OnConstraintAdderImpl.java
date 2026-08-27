@@ -20,13 +20,13 @@ import static com.powsybl.openrao.data.crac.impl.AdderUtils.assertAttributeNotNu
 /**
  * @author Thomas Bouquet {@literal <thomas.bouquet at rte-france.com>}
  */
-public class OnConstraintAdderImpl<T extends AbstractRemedialActionAdder<T>, S extends Cnec<?>> implements OnConstraintAdder<T, S> {
+public class OnConstraintAdderImpl<T extends UsageRuleGateAdderOwner, S extends Cnec<?>> implements OnConstraintAdder<T, S> {
     public static final String ON_CONSTRAINT = "OnConstraint";
     private final T owner;
     private String instantId;
     private String cnecId;
 
-    OnConstraintAdderImpl(AbstractRemedialActionAdder<T> owner) {
+    OnConstraintAdderImpl(UsageRuleGateAdderOwner owner) {
         this.owner = (T) owner;
     }
 

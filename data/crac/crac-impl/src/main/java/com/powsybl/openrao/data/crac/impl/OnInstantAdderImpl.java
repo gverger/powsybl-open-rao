@@ -18,12 +18,12 @@ import static com.powsybl.openrao.data.crac.impl.AdderUtils.assertAttributeNotNu
  * @author Peter Mitri {@literal <peter.mitri at rte-france.com>}
  * @author Baptiste Seguinot {@literal <baptiste.seguinot at rte-france.com>}
  */
-public class OnInstantAdderImpl<T extends AbstractRemedialActionAdder<T>> implements OnInstantAdder<T> {
+public class OnInstantAdderImpl<T extends UsageRuleGateAdderOwner> implements OnInstantAdder<T> {
 
     private T owner;
     private String instantId;
 
-    OnInstantAdderImpl(AbstractRemedialActionAdder<T> owner) {
+    OnInstantAdderImpl(UsageRuleGateAdderOwner owner) {
         this.owner = (T) owner;
     }
 
