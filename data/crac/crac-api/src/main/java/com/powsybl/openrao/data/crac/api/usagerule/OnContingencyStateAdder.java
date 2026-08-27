@@ -7,14 +7,13 @@
 
 package com.powsybl.openrao.data.crac.api.usagerule;
 
-import com.powsybl.openrao.data.crac.api.RemedialActionAdder;
-
 /**
- * Adds a OnContingencyState usage rule to a RemedialActionAdder
+ * Adds an OnContingencyState usage rule to its owner: a RemedialActionAdder, or a gate logic
+ * combination adder such as {@link AndUsageRuleAdder} or {@link OrUsageRuleAdder}.
  *
  * @author Baptiste Seguinot {@literal <baptiste.seguinot at rte-france.com>}
  */
-public interface OnContingencyStateAdder<T extends RemedialActionAdder<T>> {
+public interface OnContingencyStateAdder<T> {
 
     OnContingencyStateAdder<T> withContingency(String contingencyId);
 

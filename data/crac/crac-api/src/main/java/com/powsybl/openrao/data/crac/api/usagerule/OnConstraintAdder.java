@@ -7,13 +7,15 @@
 
 package com.powsybl.openrao.data.crac.api.usagerule;
 
-import com.powsybl.openrao.data.crac.api.RemedialActionAdder;
 import com.powsybl.openrao.data.crac.api.cnec.Cnec;
 
 /**
+ * Adds an OnConstraint usage rule to its owner: a RemedialActionAdder, or a gate logic combination
+ * adder such as {@link AndUsageRuleAdder} or {@link OrUsageRuleAdder}.
+ *
  * @author Thomas Bouquet {@literal <thomas.bouquet at rte-france.com>}
  */
-public interface OnConstraintAdder<T extends RemedialActionAdder<T>, S extends Cnec<?>> {
+public interface OnConstraintAdder<T, S extends Cnec<?>> {
     OnConstraintAdder<T, S> withInstant(String instantId);
 
     OnConstraintAdder<T, S> withCnec(String cnecId);

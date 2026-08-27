@@ -8,12 +8,14 @@
 package com.powsybl.openrao.data.crac.api.usagerule;
 
 import com.powsybl.iidm.network.Country;
-import com.powsybl.openrao.data.crac.api.RemedialActionAdder;
 
 /**
+ * Adds an OnFlowConstraintInCountry usage rule to its owner: a RemedialActionAdder, or a gate logic
+ * combination adder such as {@link AndUsageRuleAdder} or {@link OrUsageRuleAdder}.
+ *
  * @author Peter Mitri {@literal <peter.mitri at rte-france.com>}
  */
-public interface OnFlowConstraintInCountryAdder<T extends RemedialActionAdder<T>> {
+public interface OnFlowConstraintInCountryAdder<T> {
     OnFlowConstraintInCountryAdder<T> withInstant(String instantId);
 
     OnFlowConstraintInCountryAdder<T> withContingency(String contingencyId);

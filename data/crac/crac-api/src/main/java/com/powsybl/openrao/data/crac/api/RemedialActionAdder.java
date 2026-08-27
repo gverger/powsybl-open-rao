@@ -7,10 +7,13 @@
 
 package com.powsybl.openrao.data.crac.api;
 
+import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRuleAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnConstraintAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyStateAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountryAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnInstantAdder;
+import com.powsybl.openrao.data.crac.api.usagerule.OnSwitchStateAdder;
+import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRuleAdder;
 
 /**
  * @author Peter Mitri {@literal <peter.mitri at rte-france.com>}
@@ -33,4 +36,18 @@ public interface RemedialActionAdder<T extends RemedialActionAdder<T>> extends I
     OnConstraintAdder<T, ?> newOnConstraintUsageRule();
 
     OnFlowConstraintInCountryAdder<T> newOnFlowConstraintInCountryUsageRule();
+
+    OnSwitchStateAdder<T> newOnSwitchStateUsageRule();
+
+    /**
+     * Starts building an AndUsageRule: a gate logic UsageRule defined as the conjunction of the
+     * UsageRules that will be added to it, which is then attached to this remedial action.
+     */
+    AndUsageRuleAdder<T> newAndUsageRule();
+
+    /**
+     * Starts building an OrUsageRule: a gate logic UsageRule defined as the disjunction of the
+     * UsageRules that will be added to it, which is then attached to this remedial action.
+     */
+    OrUsageRuleAdder<T> newOrUsageRule();
 }
