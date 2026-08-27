@@ -20,10 +20,13 @@ import com.powsybl.openrao.data.crac.api.rangeaction.RangeAction;
 import com.powsybl.openrao.data.crac.api.rangeaction.VariationDirection;
 import com.powsybl.openrao.data.crac.api.threshold.BranchThreshold;
 import com.powsybl.openrao.data.crac.api.threshold.Threshold;
+import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.OnConstraint;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyState;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountry;
 import com.powsybl.openrao.data.crac.api.usagerule.OnInstant;
+import com.powsybl.openrao.data.crac.api.usagerule.OnSwitchState;
+import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.UsageRule;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -148,6 +151,10 @@ public final class JsonSerializationConstants {
     public static final String ON_ANGLE_CONSTRAINT_USAGE_RULES = "onAngleConstraintUsageRules";
     public static final String ON_VOLTAGE_CONSTRAINT_USAGE_RULES = "onVoltageConstraintUsageRules";
     public static final String ON_FLOW_CONSTRAINT_IN_COUNTRY_USAGE_RULES = "onFlowConstraintInCountryUsageRules";
+    public static final String ON_SWITCH_STATE_USAGE_RULES = "onSwitchStateUsageRules";
+    public static final String AND_USAGE_RULES = "andUsageRules";
+    public static final String OR_USAGE_RULES = "orUsageRules";
+    public static final String EXPECTED_OPEN = "expectedOpen";
 
     public static final String ID = "id";
     public static final String NAME = "name";
@@ -461,6 +468,14 @@ public final class JsonSerializationConstants {
             }
             if (o1 instanceof OnConstraint<?> oc1) {
                 return oc1.getCnec().getId().compareTo(((OnConstraint<?>) o2).getCnec().getId());
+            }
+            if (o1 instanceof OnSwitchState oss1) {
+                return oss1.getSwitchElement().getId().compareTo(((OnSwitchState) o2).getSwitchElement().getId());
+            }
+            if (o1 instanceof AndUsageRule || o1 instanceof OrUsageRule) {
+                // AndUsageRule/OrUsageRule have no natural single id to sort on; fall back to a deterministic
+                // (id-string-based) hashcode so that serialization order stays stable across runs.
+                return Integer.compare(o1.hashCode(), o2.hashCode());
             }
             throw new OpenRaoException(String.format("Unknown usage rule type: %s", o1.getClass()));
         }

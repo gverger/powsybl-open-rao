@@ -32,10 +32,13 @@ import com.powsybl.openrao.data.crac.api.rangeaction.InjectionRangeAction;
 import com.powsybl.openrao.data.crac.api.rangeaction.PstRangeAction;
 import com.powsybl.openrao.data.crac.api.threshold.BranchThreshold;
 import com.powsybl.openrao.data.crac.api.threshold.Threshold;
+import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.OnConstraint;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyState;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountry;
 import com.powsybl.openrao.data.crac.api.usagerule.OnInstant;
+import com.powsybl.openrao.data.crac.api.usagerule.OnSwitchState;
+import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRule;
 
 /**
  * @author Joris Mancini {@literal <joris.mancini at rte-france.com>}
@@ -59,6 +62,9 @@ public class CracJsonSerializerModule extends SimpleModule {
         this.addSerializer(OnContingencyState.class, new OnStateSerializer());
         this.addSerializer(OnConstraint.class, new OnConstraintSerializer());
         this.addSerializer(OnFlowConstraintInCountry.class, new OnFlowConstraintInCountrySerializer());
+        this.addSerializer(OnSwitchState.class, new OnSwitchStateSerializer());
+        this.addSerializer(AndUsageRule.class, new AndUsageRuleSerializer());
+        this.addSerializer(OrUsageRule.class, new OrUsageRuleSerializer());
         this.addSerializer(TapRange.class, new TapRangeSerializer());
         this.addSerializer(StandardRange.class, new StandardRangeSerializer());
         this.addSerializer(NetworkAction.class, new NetworkActionSerializer());
