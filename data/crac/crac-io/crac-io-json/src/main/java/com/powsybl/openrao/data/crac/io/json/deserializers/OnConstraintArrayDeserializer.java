@@ -11,10 +11,10 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.powsybl.openrao.commons.OpenRaoException;
 import com.powsybl.openrao.data.crac.api.usagerule.OnConstraintAdder;
+import com.powsybl.openrao.data.crac.api.usagerule.UsageRuleAdder;
 import com.powsybl.openrao.data.crac.io.json.JsonSerializationConstants;
 
 import java.io.IOException;
-import java.util.function.Supplier;
 
 import static com.powsybl.openrao.data.crac.io.json.JsonSerializationConstants.ANGLE_CNEC_ID;
 import static com.powsybl.openrao.data.crac.io.json.JsonSerializationConstants.CNEC_ID;
@@ -33,13 +33,13 @@ public final class OnConstraintArrayDeserializer {
     }
 
     /**
-     * adderSupplier is a supplier (rather than a single owner) so that this deserializer can be reused both
-     * for a RemedialActionAdder's own top-level UsageRules, and, recursively, for the UsageRules combined by
-     * an AndUsageRule/OrUsageRule gate logic combination adder (e.g. ownerAdder::newOnConstraintUsageRule).
+     * ownerAdder is typed as UsageRuleAdder rather than RemedialActionAdder so that this deserializer can
+     * be reused both for a RemedialActionAdder's own top-level UsageRules, and, recursively, for the
+     * UsageRules combined by an AndUsageRule/OrUsageRule gate logic combination adder.
      */
-    public static void deserialize(JsonParser jsonParser, Supplier<OnConstraintAdder<?, ?>> adderSupplier, String version) throws IOException {
+    public static void deserialize(JsonParser jsonParser, UsageRuleAdder<?> ownerAdder, String version) throws IOException {
         while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
-            OnConstraintAdder<?, ?> adder = adderSupplier.get();
+            OnConstraintAdder<?, ?> adder = ownerAdder.newOnConstraintUsageRule();
             while (!jsonParser.nextToken().isStructEnd()) {
                 switch (jsonParser.currentName()) {
                     case INSTANT:

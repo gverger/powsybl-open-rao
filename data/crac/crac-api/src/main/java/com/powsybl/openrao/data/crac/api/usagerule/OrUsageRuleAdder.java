@@ -17,18 +17,6 @@ package com.powsybl.openrao.data.crac.api.usagerule;
  *
  * @author Guillaume Verger {@literal <guillaume.verger at artelys.com>}
  */
-public interface OrUsageRuleAdder<T> {
-    OnInstantAdder<OrUsageRuleAdder<T>> newOnInstantUsageRule();
-
-    OnContingencyStateAdder<OrUsageRuleAdder<T>> newOnContingencyStateUsageRule();
-
-    OnConstraintAdder<OrUsageRuleAdder<T>, ?> newOnConstraintUsageRule();
-
-    OnFlowConstraintInCountryAdder<OrUsageRuleAdder<T>> newOnFlowConstraintInCountryUsageRule();
-
-    OnSwitchStateAdder<OrUsageRuleAdder<T>> newOnSwitchStateUsageRule();
-
-    AndUsageRuleAdder<OrUsageRuleAdder<T>> newAndUsageRule();
-
+public interface OrUsageRuleAdder<T> extends UsageRuleAdder<OrUsageRuleAdder<T>>, AndUsageRuleAdderOwner<OrUsageRuleAdder<T>> {
     T add();
 }

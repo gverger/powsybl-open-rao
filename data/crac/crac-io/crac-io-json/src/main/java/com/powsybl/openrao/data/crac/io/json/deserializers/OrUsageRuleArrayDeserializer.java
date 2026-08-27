@@ -11,10 +11,10 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.powsybl.openrao.commons.OpenRaoException;
 import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRuleAdder;
+import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRuleAdderOwner;
 import com.powsybl.openrao.data.crac.io.json.JsonSerializationConstants;
 
 import java.io.IOException;
-import java.util.function.Supplier;
 
 /**
  * @author Guillaume Verger {@literal <guillaume.verger at artelys.com>}
@@ -24,13 +24,13 @@ public final class OrUsageRuleArrayDeserializer {
     }
 
     /**
-     * adderSupplier is a supplier (rather than a single owner) so that this deserializer can be reused both
-     * for a RemedialActionAdder's own top-level UsageRules, and, recursively, for the UsageRules combined by
-     * an AndUsageRule gate logic combination adder (e.g. ownerAdder::newOrUsageRule).
+     * ownerAdder is typed as OrUsageRuleAdderOwner rather than RemedialActionAdder so that this
+     * deserializer can be reused both for a RemedialActionAdder's own top-level UsageRules, and,
+     * recursively, for the UsageRules combined by an AndUsageRule gate logic combination adder.
      */
-    public static void deserialize(JsonParser jsonParser, Supplier<OrUsageRuleAdder<?>> adderSupplier, String version) throws IOException {
+    public static void deserialize(JsonParser jsonParser, OrUsageRuleAdderOwner<?> ownerAdder, String version) throws IOException {
         while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
-            OrUsageRuleAdder<?> adder = adderSupplier.get();
+            OrUsageRuleAdder<?> adder = ownerAdder.newOrUsageRule();
             while (!jsonParser.nextToken().isStructEnd()) {
                 switch (jsonParser.currentName()) {
                     case JsonSerializationConstants.INSTANT:
@@ -40,27 +40,27 @@ public final class OrUsageRuleArrayDeserializer {
                         break;
                     case JsonSerializationConstants.ON_INSTANT_USAGE_RULES:
                         jsonParser.nextToken();
-                        OnInstantArrayDeserializer.deserialize(jsonParser, adder::newOnInstantUsageRule, version);
+                        OnInstantArrayDeserializer.deserialize(jsonParser, adder, version);
                         break;
                     case JsonSerializationConstants.ON_CONTINGENCY_STATE_USAGE_RULES:
                         jsonParser.nextToken();
-                        OnStateArrayDeserializer.deserialize(jsonParser, adder::newOnContingencyStateUsageRule, version);
+                        OnStateArrayDeserializer.deserialize(jsonParser, adder, version);
                         break;
                     case JsonSerializationConstants.ON_CONSTRAINT_USAGE_RULES:
                         jsonParser.nextToken();
-                        OnConstraintArrayDeserializer.deserialize(jsonParser, adder::newOnConstraintUsageRule, version);
+                        OnConstraintArrayDeserializer.deserialize(jsonParser, adder, version);
                         break;
                     case JsonSerializationConstants.ON_FLOW_CONSTRAINT_IN_COUNTRY_USAGE_RULES:
                         jsonParser.nextToken();
-                        OnFlowConstraintInCountryArrayDeserializer.deserialize(jsonParser, adder::newOnFlowConstraintInCountryUsageRule, version);
+                        OnFlowConstraintInCountryArrayDeserializer.deserialize(jsonParser, adder, version);
                         break;
                     case JsonSerializationConstants.ON_SWITCH_STATE_USAGE_RULES:
                         jsonParser.nextToken();
-                        OnSwitchStateArrayDeserializer.deserialize(jsonParser, adder::newOnSwitchStateUsageRule, version);
+                        OnSwitchStateArrayDeserializer.deserialize(jsonParser, adder, version);
                         break;
                     case JsonSerializationConstants.AND_USAGE_RULES:
                         jsonParser.nextToken();
-                        AndUsageRuleArrayDeserializer.deserialize(jsonParser, adder::newAndUsageRule, version);
+                        AndUsageRuleArrayDeserializer.deserialize(jsonParser, adder, version);
                         break;
                     default:
                         throw new OpenRaoException("Unexpected field in OrUsageRule: " + jsonParser.currentName());
