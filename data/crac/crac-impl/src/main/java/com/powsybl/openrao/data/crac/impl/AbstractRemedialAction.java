@@ -18,6 +18,7 @@ import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.OnConstraint;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyStateAdderToRemedialAction;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountry;
+import com.powsybl.openrao.data.crac.api.usagerule.OnFlowThreshold;
 import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.UsageRule;
 
@@ -88,6 +89,7 @@ public abstract class AbstractRemedialAction<I extends RemedialAction<I>> extend
         Set<UsageRule> usageRulesOnFlowConstraint = new HashSet<>();
         usageRulesOnFlowConstraint.addAll(getLeafUsageRules(OnConstraint.class, optimizedState).stream().filter(onConstraint -> onConstraint.getCnec() instanceof FlowCnec).toList());
         usageRulesOnFlowConstraint.addAll(getLeafUsageRules(OnFlowConstraintInCountry.class, optimizedState));
+        usageRulesOnFlowConstraint.addAll(getLeafUsageRules(OnFlowThreshold.class, optimizedState));
         usageRulesOnFlowConstraint.forEach(usageRule -> toBeConsideredCnecs.addAll(getFlowCnecsConstrainingForOneUsageRule(usageRule, perimeterCnecs, network)));
         return toBeConsideredCnecs;
     }
@@ -96,6 +98,8 @@ public abstract class AbstractRemedialAction<I extends RemedialAction<I>> extend
     public Set<FlowCnec> getFlowCnecsConstrainingForOneUsageRule(UsageRule usageRule, Set<FlowCnec> perimeterCnecs, Network network) {
         if (usageRule instanceof OnConstraint<?> onConstraint && onConstraint.getCnec() instanceof FlowCnec flowCnec) {
             return Set.of(flowCnec);
+        } else if (usageRule instanceof OnFlowThreshold onFlowThreshold) {
+            return Set.of(onFlowThreshold.getCnec());
         } else if (usageRule instanceof OnFlowConstraintInCountry onFlowConstraintInCountry) {
             return perimeterCnecs.stream()
                 .filter(cnec -> !cnec.getState().getInstant().comesBefore(usageRule.getInstant()))

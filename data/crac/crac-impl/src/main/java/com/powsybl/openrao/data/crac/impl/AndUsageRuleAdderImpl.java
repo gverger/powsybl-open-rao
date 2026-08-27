@@ -12,6 +12,7 @@ import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRuleAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnConstraintAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyStateAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountryAdder;
+import com.powsybl.openrao.data.crac.api.usagerule.OnFlowThresholdAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnInstantAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnSwitchStateAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRuleAdder;
@@ -70,6 +71,11 @@ public class AndUsageRuleAdderImpl<T extends UsageRuleGateAdderOwner> implements
     @Override
     public OrUsageRuleAdder<AndUsageRuleAdder<T>> newOrUsageRule() {
         return new OrUsageRuleAdderImpl(this);
+    }
+
+    @Override
+    public OnFlowThresholdAdder<AndUsageRuleAdder<T>> newOnFlowThresholdUsageRule() {
+        return new OnFlowThresholdAdderImpl(this);
     }
 
     @Override

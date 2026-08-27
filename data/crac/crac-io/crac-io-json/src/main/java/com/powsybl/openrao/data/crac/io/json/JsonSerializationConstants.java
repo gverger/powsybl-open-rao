@@ -24,6 +24,7 @@ import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.OnConstraint;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyState;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountry;
+import com.powsybl.openrao.data.crac.api.usagerule.OnFlowThreshold;
 import com.powsybl.openrao.data.crac.api.usagerule.OnInstant;
 import com.powsybl.openrao.data.crac.api.usagerule.OnSwitchState;
 import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRule;
@@ -152,6 +153,9 @@ public final class JsonSerializationConstants {
     public static final String ON_VOLTAGE_CONSTRAINT_USAGE_RULES = "onVoltageConstraintUsageRules";
     public static final String ON_FLOW_CONSTRAINT_IN_COUNTRY_USAGE_RULES = "onFlowConstraintInCountryUsageRules";
     public static final String ON_SWITCH_STATE_USAGE_RULES = "onSwitchStateUsageRules";
+    public static final String ON_FLOW_THRESHOLD_USAGE_RULES = "onFlowThresholdUsageRules";
+    public static final String AT_LEAST = "atLeast";
+    public static final String AT_MOST = "atMost";
     public static final String AND_USAGE_RULES = "andUsageRules";
     public static final String OR_USAGE_RULES = "orUsageRules";
     public static final String EXPECTED_OPEN = "expectedOpen";
@@ -471,6 +475,9 @@ public final class JsonSerializationConstants {
             }
             if (o1 instanceof OnSwitchState oss1) {
                 return oss1.getSwitchElement().getId().compareTo(((OnSwitchState) o2).getSwitchElement().getId());
+            }
+            if (o1 instanceof OnFlowThreshold oft1) {
+                return oft1.getCnec().getId().compareTo(((OnFlowThreshold) o2).getCnec().getId());
             }
             if (o1 instanceof AndUsageRule || o1 instanceof OrUsageRule) {
                 // AndUsageRule/OrUsageRule have no natural single id to sort on; fall back to a deterministic

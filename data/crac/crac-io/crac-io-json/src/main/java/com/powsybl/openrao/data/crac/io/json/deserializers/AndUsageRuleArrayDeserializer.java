@@ -58,6 +58,10 @@ public final class AndUsageRuleArrayDeserializer {
                         jsonParser.nextToken();
                         OnSwitchStateArrayDeserializer.deserialize(jsonParser, adder, version);
                         break;
+                    case JsonSerializationConstants.ON_FLOW_THRESHOLD_USAGE_RULES:
+                        jsonParser.nextToken();
+                        OnFlowThresholdArrayDeserializer.deserialize(jsonParser, adder, version);
+                        break;
                     case JsonSerializationConstants.OR_USAGE_RULES:
                         jsonParser.nextToken();
                         OrUsageRuleArrayDeserializer.deserialize(jsonParser, adder, version);

@@ -17,6 +17,7 @@ package com.powsybl.openrao.data.crac.api.usagerule;
  *
  * @author Guillaume Verger {@literal <guillaume.verger at artelys.com>}
  */
-public interface AndUsageRuleAdder<T> extends UsageRuleAdder<AndUsageRuleAdder<T>>, OrUsageRuleAdderOwner<AndUsageRuleAdder<T>>, OnSwitchStateAdderOwner<AndUsageRuleAdder<T>> {
+public interface AndUsageRuleAdder<T> extends UsageRuleAdder<AndUsageRuleAdder<T>>, OrUsageRuleAdderOwner<AndUsageRuleAdder<T>>,
+    OnSwitchStateAdderOwner<AndUsageRuleAdder<T>>, OnFlowThresholdAdderOwner<AndUsageRuleAdder<T>> {
     T add();
 }
