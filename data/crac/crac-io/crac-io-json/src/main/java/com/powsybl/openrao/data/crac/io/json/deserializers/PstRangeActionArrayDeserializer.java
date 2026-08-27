@@ -46,21 +46,21 @@ public final class PstRangeActionArrayDeserializer {
                         break;
                     case JsonSerializationConstants.ON_INSTANT_USAGE_RULES:
                         jsonParser.nextToken();
-                        OnInstantArrayDeserializer.deserialize(jsonParser, pstRangeActionAdder, version);
+                        OnInstantArrayDeserializer.deserialize(jsonParser, pstRangeActionAdder::newOnInstantUsageRule, version);
                         break;
                     case JsonSerializationConstants.FREE_TO_USE_USAGE_RULES:
                         deserializeFreeToUseUsageRules(jsonParser, version, pstRangeActionAdder);
                         break;
                     case JsonSerializationConstants.ON_CONTINGENCY_STATE_USAGE_RULES:
                         jsonParser.nextToken();
-                        OnStateArrayDeserializer.deserialize(jsonParser, pstRangeActionAdder, version);
+                        OnStateArrayDeserializer.deserialize(jsonParser, pstRangeActionAdder::newOnContingencyStateUsageRule, version);
                         break;
                     case JsonSerializationConstants.ON_STATE_USAGE_RULES:
                         deserializeOnStateUsageRules(jsonParser, version, pstRangeActionAdder);
                         break;
                     case JsonSerializationConstants.ON_CONSTRAINT_USAGE_RULES:
                         jsonParser.nextToken();
-                        OnConstraintArrayDeserializer.deserialize(jsonParser, pstRangeActionAdder, version);
+                        OnConstraintArrayDeserializer.deserialize(jsonParser, pstRangeActionAdder::newOnConstraintUsageRule, version);
                         break;
                     case JsonSerializationConstants.ON_FLOW_CONSTRAINT_USAGE_RULES:
                         jsonParser.nextToken();
@@ -76,7 +76,19 @@ public final class PstRangeActionArrayDeserializer {
                         break;
                     case JsonSerializationConstants.ON_FLOW_CONSTRAINT_IN_COUNTRY_USAGE_RULES:
                         jsonParser.nextToken();
-                        OnFlowConstraintInCountryArrayDeserializer.deserialize(jsonParser, pstRangeActionAdder, version);
+                        OnFlowConstraintInCountryArrayDeserializer.deserialize(jsonParser, pstRangeActionAdder::newOnFlowConstraintInCountryUsageRule, version);
+                        break;
+                    case JsonSerializationConstants.ON_SWITCH_STATE_USAGE_RULES:
+                        jsonParser.nextToken();
+                        OnSwitchStateArrayDeserializer.deserialize(jsonParser, pstRangeActionAdder::newOnSwitchStateUsageRule, version);
+                        break;
+                    case JsonSerializationConstants.AND_USAGE_RULES:
+                        jsonParser.nextToken();
+                        AndUsageRuleArrayDeserializer.deserialize(jsonParser, pstRangeActionAdder::newAndUsageRule, version);
+                        break;
+                    case JsonSerializationConstants.OR_USAGE_RULES:
+                        jsonParser.nextToken();
+                        OrUsageRuleArrayDeserializer.deserialize(jsonParser, pstRangeActionAdder::newOrUsageRule, version);
                         break;
                     case JsonSerializationConstants.NETWORK_ELEMENT_ID:
                         String networkElementId = jsonParser.nextTextValue();
@@ -147,7 +159,7 @@ public final class PstRangeActionArrayDeserializer {
             throw new OpenRaoException("OnState has been renamed to OnContingencyState since CRAC version 1.6");
         } else {
             jsonParser.nextToken();
-            OnStateArrayDeserializer.deserialize(jsonParser, pstRangeActionAdder, version);
+            OnStateArrayDeserializer.deserialize(jsonParser, pstRangeActionAdder::newOnContingencyStateUsageRule, version);
         }
     }
 
@@ -156,14 +168,14 @@ public final class PstRangeActionArrayDeserializer {
             throw new OpenRaoException("FreeToUse has been renamed to OnInstant since CRAC version 1.6");
         } else {
             jsonParser.nextToken();
-            OnInstantArrayDeserializer.deserialize(jsonParser, pstRangeActionAdder, version);
+            OnInstantArrayDeserializer.deserialize(jsonParser, pstRangeActionAdder::newOnInstantUsageRule, version);
         }
     }
 
     private static void deserializeOlderOnConstraintUsageRules(JsonParser jsonParser, String keyword, String version, PstRangeActionAdder pstRangeActionAdder) throws IOException {
         if (JsonSerializationConstants.getPrimaryVersionNumber(version) < 2
             || JsonSerializationConstants.getPrimaryVersionNumber(version) == 2 && JsonSerializationConstants.getSubVersionNumber(version) < 4) {
-            OnConstraintArrayDeserializer.deserialize(jsonParser, pstRangeActionAdder, version);
+            OnConstraintArrayDeserializer.deserialize(jsonParser, pstRangeActionAdder::newOnConstraintUsageRule, version);
         } else {
             throw new OpenRaoException("Unsupported field %s in CRAC version >= 2.4".formatted(keyword));
         }

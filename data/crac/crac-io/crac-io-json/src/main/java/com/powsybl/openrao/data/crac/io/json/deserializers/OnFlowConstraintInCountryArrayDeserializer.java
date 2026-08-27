@@ -11,11 +11,11 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.powsybl.iidm.network.Country;
 import com.powsybl.openrao.commons.OpenRaoException;
-import com.powsybl.openrao.data.crac.api.RemedialActionAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountryAdder;
 import com.powsybl.openrao.data.crac.io.json.JsonSerializationConstants;
 
 import java.io.IOException;
+import java.util.function.Supplier;
 
 import static com.powsybl.openrao.data.crac.io.json.JsonSerializationConstants.CONTINGENCY_ID;
 import static com.powsybl.openrao.data.crac.io.json.JsonSerializationConstants.COUNTRY;
@@ -29,9 +29,14 @@ public final class OnFlowConstraintInCountryArrayDeserializer {
     private OnFlowConstraintInCountryArrayDeserializer() {
     }
 
-    public static void deserialize(JsonParser jsonParser, RemedialActionAdder<?> ownerAdder, String version) throws IOException {
+    /**
+     * adderSupplier is a supplier (rather than a single owner) so that this deserializer can be reused both
+     * for a RemedialActionAdder's own top-level UsageRules, and, recursively, for the UsageRules combined by
+     * an AndUsageRule/OrUsageRule gate logic combination adder (e.g. ownerAdder::newOnFlowConstraintInCountryUsageRule).
+     */
+    public static void deserialize(JsonParser jsonParser, Supplier<OnFlowConstraintInCountryAdder<?>> adderSupplier, String version) throws IOException {
         while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
-            OnFlowConstraintInCountryAdder<?> adder = ownerAdder.newOnFlowConstraintInCountryUsageRule();
+            OnFlowConstraintInCountryAdder<?> adder = adderSupplier.get();
             while (!jsonParser.nextToken().isStructEnd()) {
                 switch (jsonParser.currentName()) {
                     case INSTANT:
