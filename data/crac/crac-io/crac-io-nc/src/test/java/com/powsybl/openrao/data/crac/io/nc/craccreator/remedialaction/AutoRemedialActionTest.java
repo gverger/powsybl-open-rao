@@ -14,6 +14,7 @@ import com.powsybl.openrao.data.crac.api.InstantKind;
 import com.powsybl.openrao.data.crac.api.RemedialAction;
 import com.powsybl.openrao.data.crac.api.networkaction.NetworkAction;
 import com.powsybl.openrao.data.crac.api.rangeaction.PstRangeAction;
+import com.powsybl.openrao.data.crac.api.usagerule.SingleInstantUsageRule;
 import com.powsybl.openrao.data.crac.impl.OnContingencyStateImpl;
 import com.powsybl.openrao.data.crac.io.commons.api.ImportStatus;
 import com.powsybl.openrao.data.crac.io.nc.craccreator.NcCracCreationContext;
@@ -39,7 +40,7 @@ class AutoRemedialActionTest {
         );
 
         List<RemedialAction<?>> importedSps = cracCreationContext.getCrac().getRemedialActions().stream()
-            .filter(ra -> ra.getUsageRules().size() == 1 && ra.getUsageRules().stream().toList().get(0).getInstant().isAuto())
+            .filter(ra -> ra.getUsageRules().size() == 1 && ((SingleInstantUsageRule) ra.getUsageRules().stream().toList().get(0)).getInstant().isAuto())
             .toList();
         assertEquals(2, importedSps.size());
 

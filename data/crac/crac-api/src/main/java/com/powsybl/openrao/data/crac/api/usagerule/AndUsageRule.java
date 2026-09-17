@@ -17,8 +17,9 @@ import java.util.Set;
  * {@link OnConstraint} or {@link OnSwitchState}, or nested {@link OrUsageRule}). It is defined for a
  * given State if, and only if, all of its UsageRules are defined for this State.
  *
- * All the UsageRules composing an AndUsageRule must share the same Instant, which is then the Instant
- * of the AndUsageRule itself.
+ * The UsageRules composing an AndUsageRule are not required to share the same Instant: e.g.
+ * OnConstraint(preventive, cnec1) AND OnSwitchState(curative, switchA) is a valid AndUsageRule. This is
+ * why AndUsageRule is not a {@link SingleInstantUsageRule}: it has no single Instant of its own.
  *
  * @author Guillaume Verger {@literal <guillaume.verger at artelys.com>}
  */

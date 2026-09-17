@@ -12,6 +12,7 @@ import com.powsybl.openrao.data.crac.api.range.StandardRange;
 import com.powsybl.openrao.data.crac.api.range.StandardRangeAdder;
 import com.powsybl.openrao.data.crac.api.rangeaction.StandardRangeActionAdder;
 import com.powsybl.openrao.data.crac.api.rangeaction.VariationDirection;
+import com.powsybl.openrao.data.crac.api.usagerule.UsageRule;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,7 +65,7 @@ public abstract class AbstractStandardRangeActionAdder<T extends StandardRangeAc
 
     protected void checkAutoUsageRules() {
         usageRules.forEach(usageRule -> {
-            if (usageRule.getInstant().isAuto() && Objects.isNull(speed)) {
+            if (UsageRule.flatten(usageRule).anyMatch(leaf -> leaf.getInstant().isAuto()) && Objects.isNull(speed)) {
                 throw new OpenRaoException("Cannot create an AUTO standard range action without speed defined");
             }
         });

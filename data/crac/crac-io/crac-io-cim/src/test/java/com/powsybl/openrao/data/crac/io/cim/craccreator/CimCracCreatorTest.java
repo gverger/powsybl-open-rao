@@ -38,6 +38,7 @@ import com.powsybl.openrao.data.crac.api.usagerule.OnConstraint;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyState;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountry;
 import com.powsybl.openrao.data.crac.api.usagerule.OnInstant;
+import com.powsybl.openrao.data.crac.api.usagerule.SingleInstantUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.UsageRule;
 import com.powsybl.openrao.data.crac.io.cim.parameters.CimCracCreationParameters;
 import com.powsybl.openrao.data.crac.io.cim.parameters.RangeActionSpeed;
@@ -742,7 +743,7 @@ class CimCracCreatorTest {
         NetworkAction ra1 = importedCrac.getNetworkAction("RA_1");
         assertEquals(1, ra1.getUsageRules().size());
         assertTrue(ra1.getUsageRules().iterator().next() instanceof OnFlowConstraintInCountry);
-        assertEquals(preventiveInstant, ra1.getUsageRules().iterator().next().getInstant());
+        assertEquals(preventiveInstant, ((OnFlowConstraintInCountry) ra1.getUsageRules().iterator().next()).getInstant());
         assertEquals(Country.PT, ((OnFlowConstraintInCountry) ra1.getUsageRules().iterator().next()).getCountry());
         assertEquals(2, ra1.getElementaryActions().size());
         assertTrue(ra1.getElementaryActions().stream()
@@ -761,7 +762,7 @@ class CimCracCreatorTest {
         NetworkAction ra2 = importedCrac.getNetworkAction("RA_2");
         assertEquals(1, ra2.getUsageRules().size());
         assertTrue(ra2.getUsageRules().iterator().next() instanceof OnFlowConstraintInCountry);
-        assertEquals(curativeInstant, ra2.getUsageRules().iterator().next().getInstant());
+        assertEquals(curativeInstant, ((OnFlowConstraintInCountry) ra2.getUsageRules().iterator().next()).getInstant());
         assertEquals(Country.ES, ((OnFlowConstraintInCountry) ra2.getUsageRules().iterator().next()).getCountry());
         assertEquals(2, ra2.getElementaryActions().size());
         assertTrue(ra2.getElementaryActions().stream()
@@ -1400,7 +1401,7 @@ class CimCracCreatorTest {
         assertEquals(5000, hvdcRangeAction1.getRanges().iterator().next().getMax());
         assertEquals(Optional.of("BBE2AA11 FFR3AA11 1 + BBE2AA12 FFR3AA12 1"), hvdcRangeAction1.getGroupId());
         assertEquals(1, hvdcRangeAction1.getUsageRules().size());
-        assertEquals("preventive", hvdcRangeAction1.getUsageRules().iterator().next().getInstant().getId());
+        assertEquals("preventive", ((SingleInstantUsageRule) hvdcRangeAction1.getUsageRules().iterator().next()).getInstant().getId());
 
         HvdcRangeAction hvdcRangeAction2 = crac.getHvdcRangeAction("HVDC-direction11 + HVDC-direction12 - BBE2AA12 FFR3AA12 1");
         assertEquals(1, hvdcRangeAction2.getRanges().size());
@@ -1408,7 +1409,7 @@ class CimCracCreatorTest {
         assertEquals(3500, hvdcRangeAction2.getRanges().iterator().next().getMax());
         assertEquals(Optional.of("BBE2AA11 FFR3AA11 1 + BBE2AA12 FFR3AA12 1"), hvdcRangeAction2.getGroupId());
         assertEquals(1, hvdcRangeAction2.getUsageRules().size());
-        assertEquals("preventive", hvdcRangeAction2.getUsageRules().iterator().next().getInstant().getId());
+        assertEquals("preventive", ((SingleInstantUsageRule) hvdcRangeAction2.getUsageRules().iterator().next()).getInstant().getId());
     }
 
     @Test
@@ -1430,7 +1431,7 @@ class CimCracCreatorTest {
         assertEquals(5000, hvdcRangeAction1.getRanges().iterator().next().getMax());
         assertEquals(Optional.of("BBE2AA11 FFR3AA11 1 + BBE2AA12 FFR3AA12 1"), hvdcRangeAction1.getGroupId());
         assertEquals(1, hvdcRangeAction1.getUsageRules().size());
-        assertEquals("curative", hvdcRangeAction1.getUsageRules().iterator().next().getInstant().getId());
+        assertEquals("curative", ((SingleInstantUsageRule) hvdcRangeAction1.getUsageRules().iterator().next()).getInstant().getId());
 
         HvdcRangeAction hvdcRangeAction2 = crac.getHvdcRangeAction("HVDC-direction11 + HVDC-direction12 - BBE2AA12 FFR3AA12 1");
         assertEquals(1, hvdcRangeAction2.getRanges().size());
@@ -1438,7 +1439,7 @@ class CimCracCreatorTest {
         assertEquals(3500, hvdcRangeAction2.getRanges().iterator().next().getMax());
         assertEquals(Optional.of("BBE2AA11 FFR3AA11 1 + BBE2AA12 FFR3AA12 1"), hvdcRangeAction2.getGroupId());
         assertEquals(1, hvdcRangeAction2.getUsageRules().size());
-        assertEquals("curative", hvdcRangeAction2.getUsageRules().iterator().next().getInstant().getId());
+        assertEquals("curative", ((SingleInstantUsageRule) hvdcRangeAction2.getUsageRules().iterator().next()).getInstant().getId());
     }
 
     @Test
@@ -1459,7 +1460,7 @@ class CimCracCreatorTest {
         assertEquals(-4000, hvdcRangeAction1.getRanges().iterator().next().getMin());
         assertEquals(5000, hvdcRangeAction1.getRanges().iterator().next().getMax());
         assertEquals(Optional.of("BBE2AA11 FFR3AA11 1 + BBE2AA12 FFR3AA12 1"), hvdcRangeAction1.getGroupId());
-        List<UsageRule> usageRules1 = hvdcRangeAction1.getUsageRules().stream().sorted(Comparator.comparing(ur -> ur.getInstant().getId())).toList();
+        List<SingleInstantUsageRule> usageRules1 = hvdcRangeAction1.getUsageRules().stream().map(SingleInstantUsageRule.class::cast).sorted(Comparator.comparing(ur -> ur.getInstant().getId())).toList();
         assertEquals(2, usageRules1.size());
         assertEquals("curative", usageRules1.getFirst().getInstant().getId());
         assertEquals("preventive", usageRules1.getLast().getInstant().getId());
@@ -1469,7 +1470,7 @@ class CimCracCreatorTest {
         assertEquals(-3000, hvdcRangeAction2.getRanges().iterator().next().getMin());
         assertEquals(3500, hvdcRangeAction2.getRanges().iterator().next().getMax());
         assertEquals(Optional.of("BBE2AA11 FFR3AA11 1 + BBE2AA12 FFR3AA12 1"), hvdcRangeAction2.getGroupId());
-        List<UsageRule> usageRules2 = hvdcRangeAction2.getUsageRules().stream().sorted(Comparator.comparing(ur -> ur.getInstant().getId())).toList();
+        List<SingleInstantUsageRule> usageRules2 = hvdcRangeAction2.getUsageRules().stream().map(SingleInstantUsageRule.class::cast).sorted(Comparator.comparing(ur -> ur.getInstant().getId())).toList();
         assertEquals(2, usageRules2.size());
         assertEquals("curative", usageRules2.getFirst().getInstant().getId());
         assertEquals("preventive", usageRules2.getLast().getInstant().getId());

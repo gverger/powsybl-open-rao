@@ -125,7 +125,7 @@ public class PstRangeActionAdderImpl extends AbstractRemedialActionAdder<PstRang
     }
 
     private boolean isPreventiveUsageRule(UsageRule usageRule) {
-        return usageRule.getInstant().isPreventive();
+        return UsageRule.flatten(usageRule).allMatch(leaf -> leaf.getInstant().isPreventive());
     }
 
     private List<TapRange> checkRanges() {
@@ -184,7 +184,7 @@ public class PstRangeActionAdderImpl extends AbstractRemedialActionAdder<PstRang
 
     void checkAutoUsageRules() {
         usageRules.forEach(usageRule -> {
-            if (usageRule.getInstant().isAuto() && Objects.isNull(speed)) {
+            if (UsageRule.flatten(usageRule).anyMatch(leaf -> leaf.getInstant().isAuto()) && Objects.isNull(speed)) {
                 throw new OpenRaoException("Cannot create an AUTO Pst range action without speed defined");
             }
         });

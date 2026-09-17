@@ -181,7 +181,7 @@ class FbConstraintCracCreatorTest {
         assertEquals("BE", rangeAction.getOperator());
         assertEquals(1, rangeAction.getUsageRules().size());
         assertTrue(rangeAction.getUsageRules().iterator().next() instanceof OnInstant);
-        assertEquals(crac.getPreventiveState().getInstant(), rangeAction.getUsageRules().iterator().next().getInstant());
+        assertEquals(crac.getPreventiveState().getInstant(), ((OnInstant) rangeAction.getUsageRules().iterator().next()).getInstant());
         assertTrue(rangeAction.getGroupId().isPresent());
         assertEquals("1", rangeAction.getGroupId().get());
         assertEquals(1, rangeAction.getRanges().size());
@@ -200,7 +200,7 @@ class FbConstraintCracCreatorTest {
         assertEquals("FR", topoPra.getOperator());
         assertEquals(1, topoPra.getUsageRules().size());
         assertTrue(topoPra.getUsageRules().iterator().next() instanceof OnInstant);
-        assertEquals(crac.getPreventiveState().getInstant(), topoPra.getUsageRules().iterator().next().getInstant());
+        assertEquals(crac.getPreventiveState().getInstant(), ((OnInstant) topoPra.getUsageRules().iterator().next()).getInstant());
         assertEquals(NetworkActionImpl.class, topoPra.getClass());
         assertEquals(2, topoPra.getElementaryActions().size());
 

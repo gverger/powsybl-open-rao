@@ -22,6 +22,7 @@ import com.powsybl.openrao.data.crac.api.usagerule.OnConstraint;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyState;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountry;
 import com.powsybl.openrao.data.crac.api.usagerule.OnInstant;
+import com.powsybl.openrao.data.crac.api.usagerule.SingleInstantUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.UsageRule;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -86,8 +87,8 @@ class JsonSerializationConstantsTest {
         assertTrue(comparator.compare(bt1, bt2) < 0);
     }
 
-    private UsageRule mockUsageRule(Instant instant, String stateId, String flowCnecId, Country country, String angleCnecId, String voltageCnecId) {
-        UsageRule usageRule = null;
+    private SingleInstantUsageRule mockUsageRule(Instant instant, String stateId, String flowCnecId, Country country, String angleCnecId, String voltageCnecId) {
+        SingleInstantUsageRule usageRule = null;
         if (stateId != null) {
             OnContingencyState ur = mock(OnContingencyState.class);
             State state = mock(State.class);

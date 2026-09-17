@@ -9,7 +9,6 @@ package com.powsybl.openrao.data.crac.api.usagerule;
 
 import com.powsybl.contingency.Contingency;
 import com.powsybl.iidm.network.Country;
-import com.powsybl.openrao.data.crac.api.Instant;
 import com.powsybl.openrao.data.crac.api.State;
 
 import java.util.Optional;
@@ -21,17 +20,11 @@ import java.util.Optional;
  *
  * @author Peter Mitri {@literal <peter.mitri at rte-france.com>}
  */
-public interface OnFlowConstraintInCountry extends UsageRule {
+public interface OnFlowConstraintInCountry extends SingleInstantUsageRule {
     /**
      * Get the country of the FlowCnec that should be constrained
      */
     Country getCountry();
-
-    /**
-     * Get the Instant of the usage rule: the usage rule is only triggered when the RA is being used at the
-     * given instant.
-     */
-    Instant getInstant();
 
     /**
      * Get the Contingency of the usage rule: the usage rule is only triggered if there is a CNEC

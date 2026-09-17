@@ -33,11 +33,6 @@ public final class AndUsageRuleArrayDeserializer {
             AndUsageRuleAdder<?> adder = ownerAdder.newAndUsageRule();
             while (!jsonParser.nextToken().isStructEnd()) {
                 switch (jsonParser.currentName()) {
-                    case JsonSerializationConstants.INSTANT:
-                        // the instant of an AndUsageRule is derived from its combined UsageRules; this field
-                        // is informative only and is simply consumed here.
-                        jsonParser.nextTextValue();
-                        break;
                     case JsonSerializationConstants.ON_INSTANT_USAGE_RULES:
                         jsonParser.nextToken();
                         OnInstantArrayDeserializer.deserialize(jsonParser, adder, version);

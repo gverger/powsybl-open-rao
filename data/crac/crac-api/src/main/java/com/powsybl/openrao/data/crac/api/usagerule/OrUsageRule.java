@@ -17,8 +17,9 @@ import java.util.Set;
  * {@link OnConstraint} or {@link OnSwitchState}, or nested {@link AndUsageRule}). It is defined for a
  * given State if, and only if, at least one of its UsageRules is defined for this State.
  *
- * All the UsageRules composing an OrUsageRule must share the same Instant, which is then the Instant
- * of the OrUsageRule itself.
+ * The UsageRules composing an OrUsageRule are not required to share the same Instant: e.g.
+ * OnConstraint(preventive, cnec1) OR OnContingencyState(curative, contingency1) is a valid OrUsageRule.
+ * This is why OrUsageRule is not a {@link SingleInstantUsageRule}: it has no single Instant of its own.
  *
  * @author Guillaume Verger {@literal <guillaume.verger at artelys.com>}
  */

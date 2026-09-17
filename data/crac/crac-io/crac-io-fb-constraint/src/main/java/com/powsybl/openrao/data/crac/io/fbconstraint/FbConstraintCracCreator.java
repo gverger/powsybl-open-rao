@@ -304,7 +304,7 @@ class FbConstraintCracCreator {
 
     private static Optional<UsageRule> getPreventiveUsageRule(final Set<UsageRule> usageRules) {
         return usageRules.stream()
-            .filter(usageRule -> usageRule.getInstant().isPreventive())
+            .filter(usageRule -> UsageRule.flatten(usageRule).anyMatch(leaf -> leaf.getInstant().isPreventive()))
             .findFirst();
     }
 
@@ -314,7 +314,7 @@ class FbConstraintCracCreator {
         // contingency listed in the afterCoList property of the ComplexVariant.
         // As there is no other type of usage rules for curative HVDC remedial actions, we can parse OnContingencyState usage rules only to list contingencies.
         return usageRules.stream()
-            .filter(usageRule -> usageRule.getInstant().isCurative())
+            .filter(usageRule -> UsageRule.flatten(usageRule).anyMatch(leaf -> leaf.getInstant().isCurative()))
             .filter(OnContingencyState.class::isInstance)
             .map(OnContingencyState.class::cast)
             .map(ur -> ur.getState().getContingency().orElse(null))

@@ -7,19 +7,38 @@
 
 package com.powsybl.openrao.data.crac.api.usagerule;
 
-import com.powsybl.openrao.data.crac.api.Instant;
 import com.powsybl.openrao.data.crac.api.State;
+
+import java.util.stream.Stream;
 
 /**
  * The UsageRule defines conditions under which a RemedialAction can be used.
  *
+ * Most UsageRules ({@link OnInstant}, {@link OnContingencyState}, {@link OnConstraint},
+ * {@link OnFlowConstraintInCountry}, {@link OnSwitchState}, {@link OnFlowThreshold}) are defined at a
+ * single Instant: see {@link SingleInstantUsageRule}. {@link AndUsageRule} and {@link OrUsageRule} are
+ * gate logic combinations of other UsageRules, which may themselves be defined at different Instants
+ * (e.g. an OnConstraint at "preventive" OR an OnContingencyState at "curative"), so they have no single
+ * Instant of their own.
+ *
  * @author Viktor Terrier {@literal <viktor.terrier at rte-france.com>}
  */
 public interface UsageRule {
-    /**
-     * Get the Instant of the usage rule
-     */
-    Instant getInstant();
-
     boolean isDefinedForState(State state);
+
+    /**
+     * Recursively unfolds AndUsageRule/OrUsageRule gate logic combinations into the leaf,
+     * single-Instant UsageRules they combine.
+     */
+    static Stream<SingleInstantUsageRule> flatten(UsageRule usageRule) {
+        if (usageRule instanceof AndUsageRule andUsageRule) {
+            return andUsageRule.getUsageRules().stream().flatMap(UsageRule::flatten);
+        } else if (usageRule instanceof OrUsageRule orUsageRule) {
+            return orUsageRule.getUsageRules().stream().flatMap(UsageRule::flatten);
+        } else if (usageRule instanceof SingleInstantUsageRule singleInstantUsageRule) {
+            return Stream.of(singleInstantUsageRule);
+        } else {
+            throw new IllegalStateException("Unknown UsageRule implementation: " + usageRule.getClass().getName());
+        }
+    }
 }

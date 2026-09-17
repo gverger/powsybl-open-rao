@@ -16,7 +16,7 @@ import com.powsybl.openrao.data.crac.api.State;
  *
  * @author Baptiste Seguinot {@literal <baptiste.seguinot at rte-france.com>}
  */
-public interface OnInstant extends UsageRule {
+public interface OnInstant extends SingleInstantUsageRule {
     default boolean isDefinedForState(State state) {
         return state.getInstant().equals(getInstant());
     }

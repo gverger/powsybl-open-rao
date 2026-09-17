@@ -17,7 +17,7 @@ import com.powsybl.openrao.data.crac.api.State;
  *
  * @author Baptiste Seguinot {@literal <baptiste.seguinot at rte-france.com>}
  */
-public interface OnContingencyState extends UsageRule {
+public interface OnContingencyState extends SingleInstantUsageRule {
 
     /**
      * Get the State of the OnContingencyState usage rule

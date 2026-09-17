@@ -82,7 +82,7 @@ class GroupRemedialActionTest {
         assertEquals("Topo 1 + Topo 2 - PRA", cracCreationContext.getCrac().getRemedialAction("23ff9c5d-9501-4141-a4b3-f4468b2eb636").getName());
         UsageRule ur0 = cracCreationContext.getCrac().getNetworkAction("23ff9c5d-9501-4141-a4b3-f4468b2eb636").getUsageRules().iterator().next();
         assertTrue(ur0 instanceof OnInstant);
-        assertEquals(InstantKind.PREVENTIVE, ur0.getInstant().getKind());
+        assertEquals(InstantKind.PREVENTIVE, ((OnInstant) ur0).getInstant().getKind());
 
         NcCracCreationTestUtil.assertNetworkActionImported(
             cracCreationContext,

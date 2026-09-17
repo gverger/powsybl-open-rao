@@ -10,7 +10,6 @@ package com.powsybl.openrao.data.crac.io.json.serializers;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRule;
-import com.powsybl.openrao.data.crac.io.json.JsonSerializationConstants;
 
 import java.io.IOException;
 
@@ -21,7 +20,6 @@ public class OrUsageRuleSerializer extends AbstractJsonSerializer<OrUsageRule> {
     @Override
     public void serialize(OrUsageRule value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
         gen.writeStartObject();
-        gen.writeStringField(JsonSerializationConstants.INSTANT, value.getInstant().getId());
         UsageRulesSerializer.serializeUsageRules(value.getUsageRules(), gen);
         gen.writeEndObject();
     }

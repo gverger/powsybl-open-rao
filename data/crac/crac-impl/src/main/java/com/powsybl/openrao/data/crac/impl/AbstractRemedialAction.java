@@ -14,12 +14,11 @@ import com.powsybl.openrao.data.crac.api.RemedialAction;
 import com.powsybl.openrao.data.crac.api.State;
 import com.powsybl.openrao.data.crac.api.cnec.Cnec;
 import com.powsybl.openrao.data.crac.api.cnec.FlowCnec;
-import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.OnConstraint;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyStateAdderToRemedialAction;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountry;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowThreshold;
-import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRule;
+import com.powsybl.openrao.data.crac.api.usagerule.SingleInstantUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.UsageRule;
 
 import java.util.HashSet;
@@ -27,7 +26,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Business object of a group of elementary remedial actions (range or network action).
@@ -102,7 +100,7 @@ public abstract class AbstractRemedialAction<I extends RemedialAction<I>> extend
             return Set.of(onFlowThreshold.getCnec());
         } else if (usageRule instanceof OnFlowConstraintInCountry onFlowConstraintInCountry) {
             return perimeterCnecs.stream()
-                .filter(cnec -> !cnec.getState().getInstant().comesBefore(usageRule.getInstant()))
+                .filter(cnec -> !cnec.getState().getInstant().comesBefore(onFlowConstraintInCountry.getInstant()))
                 .filter(cnec -> onFlowConstraintInCountry.getContingency().isEmpty() || onFlowConstraintInCountry.getContingency().equals(cnec.getState().getContingency()))
                 .filter(cnec -> isCnecInCountry(cnec, onFlowConstraintInCountry.getCountry(), network)).collect(Collectors.toSet());
         } else {
@@ -119,28 +117,13 @@ public abstract class AbstractRemedialAction<I extends RemedialAction<I>> extend
      * do not reuse this method where the root, top-level UsageRule is expected (e.g. to identify which
      * of the RemedialAction's own UsageRules is responsible for its availability at a given state).
      */
-    private <T extends UsageRule> List<T> getLeafUsageRules(Class<T> usageRuleClass, State state) {
+    private <T extends SingleInstantUsageRule> List<T> getLeafUsageRules(Class<T> usageRuleClass, State state) {
         return getUsageRules().stream()
-            .flatMap(AbstractRemedialAction::flattenGateLogicUsageRules)
+            .flatMap(UsageRule::flatten)
             .filter(usageRuleClass::isInstance)
             .map(usageRuleClass::cast)
             .filter(usageRule -> usageRule.isDefinedForState(state))
             .toList();
-    }
-
-    /**
-     * Recursively unfolds AndUsageRule/OrUsageRule gate logic combinations into the leaf UsageRules
-     * they combine, so that a leaf UsageRule nested inside a gate logic combination (e.g. an OnConstraint
-     * combined with other UsageRules through an AndUsageRule or an OrUsageRule) is still found.
-     */
-    private static Stream<UsageRule> flattenGateLogicUsageRules(UsageRule usageRule) {
-        if (usageRule instanceof AndUsageRule andUsageRule) {
-            return andUsageRule.getUsageRules().stream().flatMap(AbstractRemedialAction::flattenGateLogicUsageRules);
-        } else if (usageRule instanceof OrUsageRule orUsageRule) {
-            return orUsageRule.getUsageRules().stream().flatMap(AbstractRemedialAction::flattenGateLogicUsageRules);
-        } else {
-            return Stream.of(usageRule);
-        }
     }
 
     private static boolean isCnecInCountry(Cnec<?> cnec, Country country, Network network) {

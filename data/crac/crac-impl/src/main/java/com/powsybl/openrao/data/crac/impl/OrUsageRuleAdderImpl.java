@@ -7,7 +7,6 @@
 
 package com.powsybl.openrao.data.crac.impl;
 
-import com.powsybl.openrao.data.crac.api.Instant;
 import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRuleAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnConstraintAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyStateAdder;
@@ -80,8 +79,10 @@ public class OrUsageRuleAdderImpl<T extends UsageRuleGateAdderOwner> implements 
 
     @Override
     public T add() {
-        Instant instant = AdderUtils.checkAndGetSharedInstant(usageRules, CLASS_NAME);
-        owner.addUsageRule(new OrUsageRuleImpl(instant, usageRules));
+        AdderUtils.assertAttributeNotEmpty(usageRules, CLASS_NAME, "usage rule",
+            "newOnInstantUsageRule(), newOnContingencyStateUsageRule(), newOnConstraintUsageRule(), "
+                + "newOnFlowConstraintInCountryUsageRule(), newOnSwitchStateUsageRule(), newOnFlowThresholdUsageRule() or newAndUsageRule()");
+        owner.addUsageRule(new OrUsageRuleImpl(usageRules));
         return owner;
     }
 }

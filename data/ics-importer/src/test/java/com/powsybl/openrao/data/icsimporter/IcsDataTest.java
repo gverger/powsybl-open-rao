@@ -20,6 +20,7 @@ import com.powsybl.openrao.commons.logs.RaoBusinessWarns;
 import com.powsybl.openrao.data.crac.api.Crac;
 import com.powsybl.openrao.data.crac.api.rangeaction.InjectionRangeAction;
 import com.powsybl.openrao.data.crac.api.rangeaction.VariationDirection;
+import com.powsybl.openrao.data.crac.api.usagerule.SingleInstantUsageRule;
 import com.powsybl.openrao.data.timecoupledconstraints.GeneratorConstraints;
 import com.powsybl.openrao.data.timecoupledconstraints.TimeCoupledConstraints;
 import com.powsybl.openrao.data.timecoupledconstraints.io.JsonTimeCoupledConstraints;
@@ -372,7 +373,7 @@ public class IcsDataTest {
         assertEquals(1, crac1.getInjectionRangeActions().size());
         InjectionRangeAction ra1 = crac1.getInjectionRangeActions().iterator().next();
         assertEquals(1, ra1.getUsageRules().size());
-        assertEquals(crac1.getInstant("preventive"), ra1.getUsageRules().iterator().next().getInstant());
+        assertEquals(crac1.getInstant("preventive"), ((SingleInstantUsageRule) ra1.getUsageRules().iterator().next()).getInstant());
     }
 
     // Test Getter and Setter

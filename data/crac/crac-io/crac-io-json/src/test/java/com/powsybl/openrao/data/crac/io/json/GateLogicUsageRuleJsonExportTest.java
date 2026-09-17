@@ -42,9 +42,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Builds a NetworkAction "spsId" available if:
- *   (switchA is open AND cnecCurrent is constrained) OR contingencyA has happened
- * i.e. OrUsageRule(AndUsageRule(OnSwitchState, OnConstraint), OnContingencyState)
- * and checks what its Json export looks like, and that it can be read back.
+ *   cnecPreventive is constrained (preventive)
+ *   OR (switchA is open AND cnecCurrent is constrained) (curative)
+ *   OR contingencyA has happened (curative)
+ * i.e. OrUsageRule(OnConstraint(preventive), AndUsageRule(OnSwitchState, OnConstraint, OnFlowThreshold)(curative), OnContingencyState(curative))
+ * Note the mixed Instants directly under the OrUsageRule: a gate logic combination's children are not
+ * required to share the same Instant. Checks what its Json export looks like, and that it can be read back.
  *
  * @author Guillaume Verger {@literal <guillaume.verger at artelys.com>}
  */
@@ -60,6 +63,16 @@ class GateLogicUsageRuleJsonExportTest {
         crac.newContingency()
             .withId("contingencyA")
             .withContingencyElement("ne1Id", ContingencyElementType.LINE)
+            .add();
+
+        crac.newFlowCnec()
+            .withId("cnecPreventive")
+            .withNetworkElement("ne1Id")
+            .withInstant("preventive")
+            .withOperator("operator1")
+            .withNominalVoltage(400., TwoSides.ONE)
+            .withNominalVoltage(400., TwoSides.TWO)
+            .newThreshold().withUnit(Unit.AMPERE).withSide(TwoSides.ONE).withMax(1000.).add()
             .add();
 
         crac.newFlowCnec()
@@ -79,6 +92,7 @@ class GateLogicUsageRuleJsonExportTest {
             .withOperator("RTE")
             .newSwitchAction().withActionType(ActionType.OPEN).withNetworkElement("switchA").add()
             .newOrUsageRule()
+                .newOnConstraintUsageRule().withInstant("preventive").withCnec("cnecPreventive").add()
                 .newAndUsageRule()
                     .newOnSwitchStateUsageRule().withInstant("curative").withNetworkElement("switchA").withExpectedOpen(true).add()
                     .newOnConstraintUsageRule().withInstant("curative").withCnec("cnecCurrent").add()
@@ -124,13 +138,20 @@ class GateLogicUsageRuleJsonExportTest {
         }
 
         NetworkAction sps = importedCrac.getNetworkAction("spsId");
+        Instant preventiveInstant = importedCrac.getInstant("preventive");
         Instant curativeInstant = importedCrac.getInstant("curative");
 
         Set<UsageRule> usageRules = sps.getUsageRules();
         assertEquals(1, usageRules.size());
         OrUsageRule orUsageRule = assertInstanceOf(OrUsageRule.class, usageRules.iterator().next());
-        assertEquals(curativeInstant, orUsageRule.getInstant());
-        assertEquals(2, orUsageRule.getUsageRules().size());
+        // OrUsageRule has no single Instant: its children are defined at different Instants.
+        assertEquals(3, orUsageRule.getUsageRules().size());
+
+        OnConstraint<?> preventiveOnConstraint = orUsageRule.getUsageRules().stream()
+            .filter(OnConstraint.class::isInstance).map(oc -> (OnConstraint<?>) oc)
+            .findAny().orElseThrow();
+        assertEquals("cnecPreventive", preventiveOnConstraint.getCnec().getId());
+        assertEquals(preventiveInstant, preventiveOnConstraint.getInstant());
 
         OnContingencyState onContingencyState = orUsageRule.getUsageRules().stream()
             .filter(OnContingencyState.class::isInstance).map(OnContingencyState.class::cast)
@@ -141,7 +162,7 @@ class GateLogicUsageRuleJsonExportTest {
         AndUsageRule andUsageRule = orUsageRule.getUsageRules().stream()
             .filter(AndUsageRule.class::isInstance).map(AndUsageRule.class::cast)
             .findAny().orElseThrow();
-        assertEquals(curativeInstant, andUsageRule.getInstant());
+        // AndUsageRule has no single Instant either; here all its children happen to share "curative".
         assertEquals(3, andUsageRule.getUsageRules().size());
 
         OnSwitchState onSwitchState = andUsageRule.getUsageRules().stream()
@@ -151,11 +172,11 @@ class GateLogicUsageRuleJsonExportTest {
         assertTrue(onSwitchState.isExpectedOpen());
         assertEquals(curativeInstant, onSwitchState.getInstant());
 
-        OnConstraint<?> onConstraint = andUsageRule.getUsageRules().stream()
+        OnConstraint<?> curativeOnConstraint = andUsageRule.getUsageRules().stream()
             .filter(OnConstraint.class::isInstance).map(oc -> (OnConstraint<?>) oc)
             .findAny().orElseThrow();
-        assertEquals("cnecCurrent", onConstraint.getCnec().getId());
-        assertEquals(curativeInstant, onConstraint.getInstant());
+        assertEquals("cnecCurrent", curativeOnConstraint.getCnec().getId());
+        assertEquals(curativeInstant, curativeOnConstraint.getInstant());
 
         OnFlowThreshold onFlowThreshold = andUsageRule.getUsageRules().stream()
             .filter(OnFlowThreshold.class::isInstance).map(OnFlowThreshold.class::cast)
@@ -167,7 +188,11 @@ class GateLogicUsageRuleJsonExportTest {
         assertEquals(50., onFlowThreshold.atMost().orElseThrow(), 1e-6);
         assertEquals(curativeInstant, onFlowThreshold.getInstant());
 
-        // sanity check: the round-tripped gate logic still evaluates structurally as expected
+        // sanity check: the round-tripped gate logic still evaluates structurally as expected,
+        // through both mixed-Instant branches of the top-level OrUsageRule.
+        State preventiveState = importedCrac.getPreventiveState();
+        assertTrue(sps.isAvailableForState(preventiveState));
+
         State curativeContingencyAState = importedCrac.getState("contingencyA", curativeInstant);
         assertTrue(sps.isAvailableForState(curativeContingencyAState));
     }

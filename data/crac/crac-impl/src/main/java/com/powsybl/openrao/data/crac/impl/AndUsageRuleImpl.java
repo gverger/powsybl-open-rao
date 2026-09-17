@@ -7,7 +7,6 @@
 
 package com.powsybl.openrao.data.crac.impl;
 
-import com.powsybl.openrao.data.crac.api.Instant;
 import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.UsageRule;
 
@@ -21,17 +20,10 @@ import java.util.Set;
  */
 public final class AndUsageRuleImpl implements AndUsageRule {
 
-    private final Instant instant;
     private final Set<UsageRule> usageRules;
 
-    AndUsageRuleImpl(Instant instant, Set<UsageRule> usageRules) {
-        this.instant = instant;
+    AndUsageRuleImpl(Set<UsageRule> usageRules) {
         this.usageRules = usageRules;
-    }
-
-    @Override
-    public Instant getInstant() {
-        return instant;
     }
 
     @Override
@@ -48,11 +40,11 @@ public final class AndUsageRuleImpl implements AndUsageRule {
             return false;
         }
         AndUsageRuleImpl rule = (AndUsageRuleImpl) o;
-        return rule.getInstant().equals(instant) && new HashSet<>(rule.getUsageRules()).equals(new HashSet<>(usageRules));
+        return new HashSet<>(rule.getUsageRules()).equals(new HashSet<>(usageRules));
     }
 
     @Override
     public int hashCode() {
-        return instant.hashCode() * 47 + usageRules.hashCode() * 19;
+        return usageRules.hashCode() * 19;
     }
 }

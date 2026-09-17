@@ -17,6 +17,7 @@ import com.powsybl.openrao.data.crac.api.RemedialAction;
 import com.powsybl.openrao.data.crac.api.cnec.AngleCnec;
 import com.powsybl.openrao.data.crac.api.cnec.FlowCnec;
 import com.powsybl.openrao.data.crac.api.cnec.VoltageCnec;
+import com.powsybl.openrao.data.crac.api.usagerule.UsageRule;
 import com.powsybl.openrao.data.raoresult.api.ComputationStatus;
 import com.powsybl.openrao.data.raoresult.api.RaoResult;
 import com.powsybl.openrao.data.raoresult.api.TimeCoupledRaoResult;
@@ -90,7 +91,7 @@ public final class RaoResultHelper {
                     remedialAction
                         .getUsageRules()
                         .stream()
-                        .anyMatch(usageRule -> usageRule.getInstant().isCurative())
+                        .anyMatch(usageRule -> UsageRule.flatten(usageRule).anyMatch(leaf -> leaf.getInstant().isCurative()))
                 )
                 .map(RemedialAction::getOperator)
                 .filter(Objects::nonNull)

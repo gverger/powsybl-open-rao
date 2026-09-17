@@ -100,9 +100,9 @@ public final class HvdcUtils {
      */
     static void addAllUsageRules(HvdcRangeAction hvdcRangeAction, NetworkActionAdder acEmulationDeactivationActionAdder) {
         for (UsageRule usageRule : hvdcRangeAction.getUsageRules()) {
-            if (usageRule instanceof OnInstant) {
+            if (usageRule instanceof OnInstant onInstant) {
                 acEmulationDeactivationActionAdder.newOnInstantUsageRule()
-                    .withInstant(usageRule.getInstant().getId())
+                    .withInstant(onInstant.getInstant().getId())
                     .add();
             } else if (usageRule instanceof OnConstraint<?> onConstraint) {
                 acEmulationDeactivationActionAdder.newOnConstraintUsageRule()

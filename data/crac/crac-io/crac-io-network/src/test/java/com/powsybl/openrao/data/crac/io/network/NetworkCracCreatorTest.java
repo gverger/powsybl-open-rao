@@ -196,7 +196,7 @@ class NetworkCracCreatorTest {
         assertEquals(1, pst.getUsageRules().size());
         UsageRule ur = pst.getUsageRules().iterator().next();
         assertInstanceOf(OnInstant.class, ur);
-        assertEquals(crac.getInstant(InstantKind.CURATIVE), ur.getInstant());
+        assertEquals(crac.getInstant(InstantKind.CURATIVE), ((OnInstant) ur).getInstant());
     }
 
     @Test

@@ -19,7 +19,7 @@ import com.powsybl.openrao.data.crac.api.cnec.AngleCnec;
 import com.powsybl.openrao.data.crac.api.cnec.FlowCnec;
 import com.powsybl.openrao.data.crac.api.cnec.VoltageCnec;
 import com.powsybl.openrao.data.crac.api.rangeaction.PstRangeAction;
-import com.powsybl.openrao.data.crac.api.usagerule.UsageRule;
+import com.powsybl.openrao.data.crac.api.usagerule.SingleInstantUsageRule;
 import com.powsybl.openrao.data.raoresult.api.ComputationStatus;
 import com.powsybl.openrao.data.raoresult.api.RaoResult;
 import com.powsybl.openrao.raoapi.parameters.NotOptimizedCnecsParameters;
@@ -81,7 +81,7 @@ class RaoResultHelperTest {
 
         pstRangeActionBe = mock(PstRangeAction.class);
         when(pstRangeActionBe.getOperator()).thenReturn("BE");
-        UsageRule beUsageRule = mock(UsageRule.class);
+        SingleInstantUsageRule beUsageRule = mock(SingleInstantUsageRule.class);
         when(beUsageRule.getInstant()).thenReturn(preventiveInstant); // Not curative
         when(pstRangeActionBe.getUsageRules()).thenReturn(Collections.singleton(beUsageRule));
 
@@ -89,7 +89,7 @@ class RaoResultHelperTest {
         // For curative RA of BE, we need a RemedialAction with a curative usage rule
         RemedialAction<?> curativeRaBe = mock(RemedialAction.class);
         when(curativeRaBe.getOperator()).thenReturn("BE");
-        UsageRule curativeUsageRuleBe = mock(UsageRule.class);
+        SingleInstantUsageRule curativeUsageRuleBe = mock(SingleInstantUsageRule.class);
         when(curativeUsageRuleBe.getInstant()).thenReturn(curativeInstant);
         when(curativeRaBe.getUsageRules()).thenReturn(Collections.singleton(curativeUsageRuleBe));
 

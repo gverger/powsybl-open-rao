@@ -7,6 +7,7 @@ import com.powsybl.openrao.data.crac.api.Instant;
 import com.powsybl.openrao.data.crac.api.parameters.CracCreationParameters;
 import com.powsybl.openrao.data.crac.api.rangeaction.InjectionRangeAction;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyState;
+import com.powsybl.openrao.data.crac.api.usagerule.SingleInstantUsageRule;
 import com.powsybl.openrao.data.crac.io.commons.api.ElementaryCreationContext;
 import com.powsybl.openrao.data.crac.io.commons.api.ImportStatus;
 import com.powsybl.openrao.data.crac.io.fbconstraint.parameters.FbConstraintCracCreationParameters;
@@ -286,7 +287,7 @@ class FbConstraintImporterTest {
         SoftAssertions softAssertions = new SoftAssertions();
         assertRangeActionContent(softAssertions, firstRA, "D7_RA_99991 + D4_RA_99991", "PRA_TEST_1A + PRA_TEST_1", "D7 + D4", Optional.of("Esgaroth + Numenor"), 1000.0);
         softAssertions.assertThat(firstRA.getUsageRules()).hasSize(1);
-        final Instant firstRAInstant = firstRA.getUsageRules().stream().findFirst().orElseThrow().getInstant();
+        final Instant firstRAInstant = ((SingleInstantUsageRule) firstRA.getUsageRules().stream().findFirst().orElseThrow()).getInstant();
         softAssertions.assertThat(firstRAInstant.isPreventive()).isTrue();
         softAssertions.assertThat(firstRAInstant.isCurative()).isFalse();
         softAssertions.assertThat(firstRA.getRanges()).hasSize(1);
@@ -305,7 +306,7 @@ class FbConstraintImporterTest {
         softAssertions = new SoftAssertions();
         assertRangeActionContent(softAssertions, secondRA, "D7_RA_99992 + D4_RA_99992", "PRA_TEST_2A + PRA_TEST_2", "D7 + D4", Optional.of("Esgaroth + Numenor"), 1000.0);
         softAssertions.assertThat(secondRA.getUsageRules()).hasSize(1);
-        final Instant secondRAInstant = secondRA.getUsageRules().stream().findFirst().orElseThrow().getInstant();
+        final Instant secondRAInstant = ((SingleInstantUsageRule) secondRA.getUsageRules().stream().findFirst().orElseThrow()).getInstant();
         softAssertions.assertThat(secondRAInstant.isPreventive()).isTrue();
         softAssertions.assertThat(secondRAInstant.isCurative()).isFalse();
         softAssertions.assertThat(secondRA.getRanges()).hasSize(1);

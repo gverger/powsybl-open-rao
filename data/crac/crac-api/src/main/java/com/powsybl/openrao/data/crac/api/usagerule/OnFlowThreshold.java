@@ -9,7 +9,6 @@ package com.powsybl.openrao.data.crac.api.usagerule;
 
 import com.powsybl.iidm.network.TwoSides;
 import com.powsybl.openrao.commons.Unit;
-import com.powsybl.openrao.data.crac.api.Instant;
 import com.powsybl.openrao.data.crac.api.State;
 import com.powsybl.openrao.data.crac.api.cnec.FlowCnec;
 
@@ -40,7 +39,7 @@ import java.util.Optional;
  *
  * @author Guillaume Verger {@literal <guillaume.verger at artelys.com>}
  */
-public interface OnFlowThreshold extends UsageRule {
+public interface OnFlowThreshold extends SingleInstantUsageRule {
     /**
      * Get the FlowCnec whose flow should be compared to this usage rule's threshold(s)
      */

@@ -16,6 +16,7 @@ import com.powsybl.openrao.data.crac.api.Crac;
 import com.powsybl.openrao.data.crac.api.cnec.AngleCnec;
 import com.powsybl.openrao.data.crac.api.networkaction.NetworkAction;
 import com.powsybl.openrao.data.crac.api.rangeaction.PstRangeAction;
+import com.powsybl.openrao.data.crac.api.usagerule.SingleInstantUsageRule;
 import com.powsybl.openrao.data.crac.io.commons.api.ImportStatus;
 import org.junit.jupiter.api.Test;
 
@@ -94,7 +95,7 @@ class NcSsiTest {
         assertTrue(((SwitchAction) elementaryAction).isOpen());
 
         assertEquals(1, remedialAction.getUsageRules().size());
-        assertEquals(crac.getInstant(PREVENTIVE_INSTANT_ID), remedialAction.getUsageRules().iterator().next().getInstant());
+        assertEquals(crac.getInstant(PREVENTIVE_INSTANT_ID), ((SingleInstantUsageRule) remedialAction.getUsageRules().iterator().next()).getInstant());
 
         assertRaNotImported(
             cracCreationContext,
@@ -119,7 +120,7 @@ class NcSsiTest {
         assertTrue(((SwitchAction) elementaryAction).isOpen());
 
         assertEquals(1, remedialAction.getUsageRules().size());
-        assertEquals(crac.getInstant(PREVENTIVE_INSTANT_ID), remedialAction.getUsageRules().iterator().next().getInstant());
+        assertEquals(crac.getInstant(PREVENTIVE_INSTANT_ID), ((SingleInstantUsageRule) remedialAction.getUsageRules().iterator().next()).getInstant());
 
         assertRaNotImported(
             cracCreationContext,

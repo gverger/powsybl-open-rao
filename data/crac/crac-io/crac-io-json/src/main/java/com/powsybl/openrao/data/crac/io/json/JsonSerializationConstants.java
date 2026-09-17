@@ -28,6 +28,7 @@ import com.powsybl.openrao.data.crac.api.usagerule.OnFlowThreshold;
 import com.powsybl.openrao.data.crac.api.usagerule.OnInstant;
 import com.powsybl.openrao.data.crac.api.usagerule.OnSwitchState;
 import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRule;
+import com.powsybl.openrao.data.crac.api.usagerule.SingleInstantUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.UsageRule;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -458,8 +459,17 @@ public final class JsonSerializationConstants {
             if (!o1.getClass().equals(o2.getClass())) {
                 return o1.getClass().toString().compareTo(o2.getClass().toString());
             }
-            if (!o1.getInstant().equals(o2.getInstant())) {
-                return o1.getInstant().comesBefore(o2.getInstant()) ? -1 : 1;
+            if (o1 instanceof AndUsageRule || o1 instanceof OrUsageRule) {
+                // AndUsageRule/OrUsageRule have no single Instant (their combined UsageRules may each be
+                // defined at a different Instant) and no natural single id to sort on either; fall back to
+                // a deterministic (id-string-based) hashcode so that serialization order stays stable
+                // across runs.
+                return Integer.compare(o1.hashCode(), o2.hashCode());
+            }
+            SingleInstantUsageRule s1 = (SingleInstantUsageRule) o1;
+            SingleInstantUsageRule s2 = (SingleInstantUsageRule) o2;
+            if (!s1.getInstant().equals(s2.getInstant())) {
+                return s1.getInstant().comesBefore(s2.getInstant()) ? -1 : 1;
             }
             if (o1 instanceof OnInstant) {
                 return 0;
@@ -478,11 +488,6 @@ public final class JsonSerializationConstants {
             }
             if (o1 instanceof OnFlowThreshold oft1) {
                 return oft1.getCnec().getId().compareTo(((OnFlowThreshold) o2).getCnec().getId());
-            }
-            if (o1 instanceof AndUsageRule || o1 instanceof OrUsageRule) {
-                // AndUsageRule/OrUsageRule have no natural single id to sort on; fall back to a deterministic
-                // (id-string-based) hashcode so that serialization order stays stable across runs.
-                return Integer.compare(o1.hashCode(), o2.hashCode());
             }
             throw new OpenRaoException(String.format("Unknown usage rule type: %s", o1.getClass()));
         }

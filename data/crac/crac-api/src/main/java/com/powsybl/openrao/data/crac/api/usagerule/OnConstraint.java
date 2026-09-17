@@ -18,7 +18,7 @@ import com.powsybl.openrao.data.crac.api.cnec.Cnec;
  *
  * @author Thomas Bouquet {@literal <thomas.bouquet at rte-france.com>}
  */
-public interface OnConstraint<T extends Cnec<?>> extends UsageRule {
+public interface OnConstraint<T extends Cnec<?>> extends SingleInstantUsageRule {
     /**
      * Get the Cnec that should be constrained
      */

@@ -70,7 +70,7 @@ class OnInstantAdderImplTest {
 
         assertEquals(1, remedialAction.getUsageRules().size());
         assertTrue(usageRule instanceof OnInstant);
-        assertEquals(preventiveInstant, usageRule.getInstant());
+        assertEquals(preventiveInstant, ((OnInstant) usageRule).getInstant());
         assertEquals(1, crac.getStates().size());
         assertNotNull(crac.getPreventiveState());
     }
@@ -86,7 +86,7 @@ class OnInstantAdderImplTest {
 
         assertEquals(1, remedialAction.getUsageRules().size());
         assertTrue(usageRule instanceof OnInstant);
-        assertEquals(curativeInstant, usageRule.getInstant());
+        assertEquals(curativeInstant, ((OnInstant) usageRule).getInstant());
     }
 
     @Test

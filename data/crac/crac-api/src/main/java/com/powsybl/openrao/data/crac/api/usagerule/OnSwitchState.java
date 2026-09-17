@@ -7,7 +7,6 @@
 
 package com.powsybl.openrao.data.crac.api.usagerule;
 
-import com.powsybl.openrao.data.crac.api.Instant;
 import com.powsybl.openrao.data.crac.api.NetworkElement;
 import com.powsybl.openrao.data.crac.api.State;
 
@@ -22,12 +21,7 @@ import com.powsybl.openrao.data.crac.api.State;
  *
  * @author Guillaume Verger {@literal <guillaume.verger at artelys.com>}
  */
-public interface OnSwitchState extends UsageRule {
-    /**
-     * Get the Instant at which the usage rule is triggered
-     */
-    Instant getInstant();
-
+public interface OnSwitchState extends SingleInstantUsageRule {
     /**
      * Get the NetworkElement of the switch whose state is monitored
      */
