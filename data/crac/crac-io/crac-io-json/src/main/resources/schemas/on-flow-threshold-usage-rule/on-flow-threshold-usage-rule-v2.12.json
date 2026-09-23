@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema#",
+  "$id": "resource:/schemas/on-flow-threshold-usage-rule/on-flow-threshold-usage-rule-v2.12.json",
+  "type": "object",
+  "properties": {
+    "instant": {
+      "type": "string"
+    },
+    "cnecId": {
+      "type": "string"
+    },
+    "side": {
+      "$ref": "../two-sides/two-sides-v2.4.json"
+    },
+    "unit": {
+      "$ref": "../flow-unit/flow-unit-v1.0.json"
+    },
+    "atLeast": {
+      "type": "number"
+    },
+    "atMost": {
+      "type": "number"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "instant",
+    "cnecId",
+    "side",
+    "unit"
+  ]
+}

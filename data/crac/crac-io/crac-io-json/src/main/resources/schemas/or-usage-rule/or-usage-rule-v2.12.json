@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema#",
+  "$id": "resource:/schemas/or-usage-rule/or-usage-rule-v2.12.json",
+  "type": "object",
+  "properties": {
+    "onInstantUsageRules": {
+      "type": "array",
+      "items": {
+        "$ref": "../on-instant-usage-rule/on-instant-usage-rule-v2.8.json"
+      }
+    },
+    "onContingencyStateUsageRules": {
+      "type": "array",
+      "items": {
+        "$ref": "../on-contingency-state-usage-rule/on-contingency-state-usage-rule-v2.8.json"
+      }
+    },
+    "onConstraintUsageRules": {
+      "type": "array",
+      "items": {
+        "$ref": "../on-constraint-usage-rule/on-constraint-usage-rule-v2.8.json"
+      }
+    },
+    "onFlowConstraintInCountryUsageRules": {
+      "type": "array",
+      "items": {
+        "$ref": "../on-flow-constraint-in-country-usage-rule/on-flow-constraint-in-country-usage-rule-v2.8.json"
+      }
+    },
+    "onSwitchStateUsageRules": {
+      "type": "array",
+      "items": {
+        "$ref": "../on-switch-state-usage-rule/on-switch-state-usage-rule-v2.12.json"
+      }
+    },
+    "onFlowThresholdUsageRules": {
+      "type": "array",
+      "items": {
+        "$ref": "../on-flow-threshold-usage-rule/on-flow-threshold-usage-rule-v2.12.json"
+      }
+    },
+    "andUsageRules": {
+      "type": "array",
+      "items": {
+        "$ref": "../and-usage-rule/and-usage-rule-v2.12.json"
+      }
+    }
+  },
+  "additionalProperties": false
+}

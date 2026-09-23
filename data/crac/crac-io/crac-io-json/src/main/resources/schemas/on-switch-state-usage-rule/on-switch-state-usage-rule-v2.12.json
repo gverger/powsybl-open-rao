@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema#",
+  "$id": "resource:/schemas/on-switch-state-usage-rule/on-switch-state-usage-rule-v2.12.json",
+  "type": "object",
+  "properties": {
+    "instant": {
+      "type": "string"
+    },
+    "networkElementId": {
+      "type": "string"
+    },
+    "expectedOpen": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "instant",
+    "networkElementId"
+  ]
+}

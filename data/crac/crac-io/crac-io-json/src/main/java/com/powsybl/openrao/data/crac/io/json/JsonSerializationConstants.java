@@ -49,7 +49,7 @@ public final class JsonSerializationConstants {
     private JsonSerializationConstants() {
     }
 
-    public static final String CRAC_IO_VERSION = "2.11";
+    public static final String CRAC_IO_VERSION = "2.12";
     /*
     v1.1: addition of switchPairs
     v1.2: addition of injectionRangeAction
@@ -72,6 +72,7 @@ public final class JsonSerializationConstants {
     v2.9: add acEmulationDeactivationAction
     v2.10: renaming of danglingLineActions to boundaryLineActions, remove max-tso from ra-usage-limit-per-instant, add rangeType for all range actions
     v2.11: removal of networkElementsNamePerId, renaming counter-trade actions' importingCountry to importingArea, and exportingCountry to exportingArea
+    v2.12: addition of andUsageRules/orUsageRules gate logic combinations (and, nested within them, onSwitchStateUsageRules/onFlowThresholdUsageRules)
      */
 
     // headers

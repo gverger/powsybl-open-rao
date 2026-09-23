@@ -16,6 +16,7 @@ import org.mockito.Mockito;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -117,6 +118,20 @@ class UsageRuleTest {
         }
     }
 
+    public static class OrUsageRuleMock implements OrUsageRule {
+
+        private final Set<UsageRule> usageRules;
+
+        OrUsageRuleMock(Set<UsageRule> usageRules) {
+            this.usageRules = usageRules;
+        }
+
+        @Override
+        public Set<UsageRule> getUsageRules() {
+            return usageRules;
+        }
+    }
+
     @Test
     void testOnInstantDefinedForState() {
         OnInstant preventiveOnInstant = new OnInstantMock(preventiveInstant);
@@ -169,6 +184,25 @@ class UsageRuleTest {
 
     @Test
     void testOnFlowConstraintInCountryDefinedForState() {
+        OnFlowConstraintInCountry preventiveOnFlowConstraintInCountry = new OnFlowConstraintInCountryMock(preventiveInstant, Country.FR, null);
+        assertTrue(preventiveOnFlowConstraintInCountry.isDefinedForState(preventiveState));
+        assertFalse(preventiveOnFlowConstraintInCountry.isDefinedForState(curativeState1));
+        assertFalse(preventiveOnFlowConstraintInCountry.isDefinedForState(curativeState2));
+
+        OnFlowConstraintInCountry curativeOnFlowConstraintInCountryWithoutContingency = new OnFlowConstraintInCountryMock(curativeInstant, Country.FR, null);
+        assertFalse(curativeOnFlowConstraintInCountryWithoutContingency.isDefinedForState(preventiveState));
+        assertTrue(curativeOnFlowConstraintInCountryWithoutContingency.isDefinedForState(curativeState1));
+        assertTrue(curativeOnFlowConstraintInCountryWithoutContingency.isDefinedForState(curativeState2));
+
+        OnFlowConstraintInCountry curativeOnFlowConstraintInCountryWithContingency = new OnFlowConstraintInCountryMock(curativeInstant, Country.FR, contingency1);
+        assertFalse(curativeOnFlowConstraintInCountryWithContingency.isDefinedForState(preventiveState));
+        assertTrue(curativeOnFlowConstraintInCountryWithContingency.isDefinedForState(curativeState1));
+        assertFalse(curativeOnFlowConstraintInCountryWithContingency.isDefinedForState(curativeState2));
+    }
+
+    @Test
+    void testOrUsageRuleDefinedForState() {
+        OrUsageRule preventiveOrUsageRule = new OrUsageRuleMock(Set.of());
         OnFlowConstraintInCountry preventiveOnFlowConstraintInCountry = new OnFlowConstraintInCountryMock(preventiveInstant, Country.FR, null);
         assertTrue(preventiveOnFlowConstraintInCountry.isDefinedForState(preventiveState));
         assertFalse(preventiveOnFlowConstraintInCountry.isDefinedForState(curativeState1));
