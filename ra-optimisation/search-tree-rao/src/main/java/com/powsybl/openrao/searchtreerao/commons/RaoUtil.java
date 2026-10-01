@@ -12,6 +12,7 @@ import com.powsybl.computation.ComputationManager;
 import com.powsybl.contingency.Contingency;
 import com.powsybl.iidm.network.Bus;
 import com.powsybl.iidm.network.Network;
+import com.powsybl.iidm.network.Switch;
 import com.powsybl.iidm.network.extensions.HvdcAngleDroopActivePowerControl;
 import com.powsybl.openrao.commons.OpenRaoException;
 import com.powsybl.openrao.commons.Unit;
@@ -26,6 +27,7 @@ import com.powsybl.openrao.data.crac.api.usagerule.OnConstraint;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyState;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountry;
 import com.powsybl.openrao.data.crac.api.usagerule.OnInstant;
+import com.powsybl.openrao.data.crac.api.usagerule.OnSwitchState;
 import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.UsageRule;
 import com.powsybl.openrao.data.refprog.referenceprogram.ReferenceProgramBuilder;
@@ -186,9 +188,25 @@ public final class RaoUtil {
         } else if (usageRule instanceof OnFlowConstraintInCountry
             || usageRule instanceof OnConstraint<?> onConstraint && onConstraint.getCnec() instanceof FlowCnec) {
             return isAnyMarginNegative(flowResult, remedialAction.getFlowCnecsConstrainingForOneUsageRule(usageRule, flowCnecs, network), unit);
+        } else if (usageRule instanceof OnSwitchState onSwitchState) {
+            return isSwitchInExpectedState(onSwitchState, network);
         } else {
             return false;
         }
+    }
+
+    /**
+     * The switch state is read from the given network as it is: callers must make sure that it reflects the
+     * situation in which the usage rule is evaluated (e.g. with the preventive remedial actions applied when
+     * evaluating an automaton).
+     */
+    private static boolean isSwitchInExpectedState(OnSwitchState onSwitchState, Network network) {
+        String switchId = onSwitchState.getSwitchElement().getId();
+        Switch networkSwitch = network.getSwitch(switchId);
+        if (networkSwitch == null) {
+            throw new OpenRaoException(format("Switch %s of OnSwitchState usage rule cannot be found in the network", switchId));
+        }
+        return networkSwitch.isOpen() == onSwitchState.isExpectedOpen();
     }
 
     /**
