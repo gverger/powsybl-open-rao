@@ -21,10 +21,12 @@ import com.powsybl.openrao.data.crac.api.State;
 import com.powsybl.openrao.data.crac.api.cnec.Cnec;
 import com.powsybl.openrao.data.crac.api.cnec.FlowCnec;
 import com.powsybl.openrao.data.crac.api.rangeaction.RangeAction;
+import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.OnConstraint;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyState;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountry;
 import com.powsybl.openrao.data.crac.api.usagerule.OnInstant;
+import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.UsageRule;
 import com.powsybl.openrao.data.refprog.referenceprogram.ReferenceProgramBuilder;
 import com.powsybl.openrao.raoapi.RaoInput;
@@ -173,22 +175,17 @@ public final class RaoUtil {
     }
 
     private static boolean isUsageRuleActivated(UsageRule usageRule, RemedialAction<?> remedialAction, State state, FlowResult flowResult, Set<FlowCnec> flowCnecs, Network network, Unit unit) {
-        if (usageRule instanceof OnInstant onInstant) {
-            return onInstant.getInstant().equals(state.getInstant());
-        } else if (usageRule instanceof OnContingencyState onContingencyState) {
-            return onContingencyState.getState().equals(state);
-        } else if (usageRule instanceof OnFlowConstraintInCountry onFlowConstraintInCountry) {
-            if (onFlowConstraintInCountry.getContingency().isPresent() && !onFlowConstraintInCountry.getContingency().equals(state.getContingency())) {
-                return false;
-            }
-            return isAnyMarginNegative(flowResult, remedialAction.getFlowCnecsConstrainingForOneUsageRule(onFlowConstraintInCountry, flowCnecs, network), unit)
-                && onFlowConstraintInCountry.getInstant().equals(state.getInstant());
-        } else if (usageRule instanceof OnConstraint<?> onConstraint && onConstraint.getCnec() instanceof FlowCnec flowCnec) {
-            if (!onConstraint.getInstant().isPreventive() && !flowCnec.getState().getContingency().equals(state.getContingency())) {
-                return false;
-            }
-            return isAnyMarginNegative(flowResult, remedialAction.getFlowCnecsConstrainingForOneUsageRule(onConstraint, flowCnecs, network), unit)
-                && onConstraint.getInstant().equals(state.getInstant());
+        if (usageRule instanceof AndUsageRule andUsageRule) {
+            return andUsageRule.getUsageRules().stream().allMatch(ur -> isUsageRuleActivated(ur, remedialAction, state, flowResult, flowCnecs, network, unit));
+        } else if (usageRule instanceof OrUsageRule orUsageRule) {
+            return orUsageRule.getUsageRules().stream().anyMatch(ur -> isUsageRuleActivated(ur, remedialAction, state, flowResult, flowCnecs, network, unit));
+        } else if (!usageRule.isDefinedForState(state)) {
+            return false;
+        } else if (usageRule instanceof OnInstant || usageRule instanceof OnContingencyState) {
+            return true;
+        } else if (usageRule instanceof OnFlowConstraintInCountry
+            || usageRule instanceof OnConstraint<?> onConstraint && onConstraint.getCnec() instanceof FlowCnec) {
+            return isAnyMarginNegative(flowResult, remedialAction.getFlowCnecsConstrainingForOneUsageRule(usageRule, flowCnecs, network), unit);
         } else {
             return false;
         }

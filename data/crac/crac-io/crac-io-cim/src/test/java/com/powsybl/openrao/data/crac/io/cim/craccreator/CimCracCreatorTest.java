@@ -39,7 +39,6 @@ import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyState;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountry;
 import com.powsybl.openrao.data.crac.api.usagerule.OnInstant;
 import com.powsybl.openrao.data.crac.api.usagerule.SingleInstantUsageRule;
-import com.powsybl.openrao.data.crac.api.usagerule.UsageRule;
 import com.powsybl.openrao.data.crac.io.cim.parameters.CimCracCreationParameters;
 import com.powsybl.openrao.data.crac.io.cim.parameters.RangeActionSpeed;
 import com.powsybl.openrao.data.crac.io.cim.parameters.VoltageCnecsCreationParameters;
@@ -1460,7 +1459,8 @@ class CimCracCreatorTest {
         assertEquals(-4000, hvdcRangeAction1.getRanges().iterator().next().getMin());
         assertEquals(5000, hvdcRangeAction1.getRanges().iterator().next().getMax());
         assertEquals(Optional.of("BBE2AA11 FFR3AA11 1 + BBE2AA12 FFR3AA12 1"), hvdcRangeAction1.getGroupId());
-        List<SingleInstantUsageRule> usageRules1 = hvdcRangeAction1.getUsageRules().stream().map(SingleInstantUsageRule.class::cast).sorted(Comparator.comparing(ur -> ur.getInstant().getId())).toList();
+        List<SingleInstantUsageRule> usageRules1 = hvdcRangeAction1.getUsageRules().stream().map(SingleInstantUsageRule.class::cast)
+                .sorted(Comparator.comparing(ur -> ur.getInstant().getId())).toList();
         assertEquals(2, usageRules1.size());
         assertEquals("curative", usageRules1.getFirst().getInstant().getId());
         assertEquals("preventive", usageRules1.getLast().getInstant().getId());
@@ -1470,7 +1470,8 @@ class CimCracCreatorTest {
         assertEquals(-3000, hvdcRangeAction2.getRanges().iterator().next().getMin());
         assertEquals(3500, hvdcRangeAction2.getRanges().iterator().next().getMax());
         assertEquals(Optional.of("BBE2AA11 FFR3AA11 1 + BBE2AA12 FFR3AA12 1"), hvdcRangeAction2.getGroupId());
-        List<SingleInstantUsageRule> usageRules2 = hvdcRangeAction2.getUsageRules().stream().map(SingleInstantUsageRule.class::cast).sorted(Comparator.comparing(ur -> ur.getInstant().getId())).toList();
+        List<SingleInstantUsageRule> usageRules2 = hvdcRangeAction2.getUsageRules().stream().map(SingleInstantUsageRule.class::cast)
+                .sorted(Comparator.comparing(ur -> ur.getInstant().getId())).toList();
         assertEquals(2, usageRules2.size());
         assertEquals("curative", usageRules2.getFirst().getInstant().getId());
         assertEquals("preventive", usageRules2.getLast().getInstant().getId());
