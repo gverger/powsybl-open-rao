@@ -68,3 +68,26 @@ Feature: 2.4.5: Activate remedial actions when at least one of several usage rul
     Then the margin on cnec "BBE1AA1  FFR5AA1  1 - preventive" after PRA should be 82 A
     Then the margin on cnec "BBE2AA1  FFR3AA1  1 - co1_fr2_fr3_1 - curative" after CRA should be 245 A
     Then the margin on cnec "FFR3AA1  FFR5AA1  1 - co1_fr2_fr3_1 - curative" after CRA should be 345 A
+
+  @fast @rao @ac @contingency-scenarios @max-min-margin
+  Scenario: 2.4.5.4: OR with a nested AND usage rule
+  # pst_be's OrUsageRule combines an OnConstraint on a CNEC that can never be violated (a threshold
+  # of +/-100000 A) with a nested AndUsageRule, itself combining OnInstant(preventive) and an
+  # OnConstraint on the violated preventive CNEC. The OnConstraint never holds, but the nested
+  # AndUsageRule does, so the OrUsageRule holds and pst_be is available in preventive. The nested
+  # AndUsageRule is decisive here: without it, pst_be would be unavailable (as in 2.4.5.2). Results
+  # are the same as in 2.4.1.7 and 2.4.5.1.
+    Given network file is "common/TestCase16Nodes.uct"
+    Given crac file is "extra_features/Crac_OR_4.json"
+    Given configuration file is "common/RaoParameters_maxMargin_ampere.json"
+    When I launch rao
+    Then the execution details should be "The RAO only went through first preventive"
+    Then its security status should be "SECURED"
+    Then 1 remedial actions are used in preventive
+    Then the remedial action "pst_be" is used in preventive
+    Then the tap of PstRangeAction "pst_be" should be 16 in preventive
+    Then 0 remedial actions are used after "co1_fr2_fr3_1" at "curative"
+    Then the worst margin is 82 A
+    Then the margin on cnec "BBE1AA1  FFR5AA1  1 - preventive" after PRA should be 82 A
+    Then the margin on cnec "BBE2AA1  FFR3AA1  1 - co1_fr2_fr3_1 - curative" after CRA should be 245 A
+    Then the margin on cnec "FFR3AA1  FFR5AA1  1 - co1_fr2_fr3_1 - curative" after CRA should be 345 A
