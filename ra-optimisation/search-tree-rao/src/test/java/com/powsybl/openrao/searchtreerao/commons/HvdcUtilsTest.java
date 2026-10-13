@@ -11,11 +11,15 @@ import com.powsybl.action.Action;
 import com.powsybl.action.HvdcAction;
 import com.powsybl.action.HvdcActionBuilder;
 import com.powsybl.commons.report.ReportNode;
+import com.powsybl.contingency.ContingencyElementType;
 import com.powsybl.iidm.network.HvdcLine;
 import com.powsybl.iidm.network.Network;
+import com.powsybl.iidm.network.TwoSides;
 import com.powsybl.loadflow.LoadFlowParameters;
 import com.powsybl.openloadflow.OpenLoadFlowParameters;
+import com.powsybl.openrao.commons.Unit;
 import com.powsybl.openrao.data.crac.api.Crac;
+import com.powsybl.openrao.data.crac.api.CracFactory;
 import com.powsybl.openrao.data.crac.api.InstantKind;
 import com.powsybl.openrao.data.crac.api.NetworkElement;
 import com.powsybl.openrao.data.crac.api.State;
@@ -53,6 +57,51 @@ public class HvdcUtilsTest {
         assertEquals(8, crac.getNetworkAction("acEmulationDeactivation_BBE2AA11 FFR3AA11 1").getUsageRules().size());
         assertTrue(crac.getNetworkAction("acEmulationDeactivation_BBE2AA11 FFR3AA11 1").getUsageRules().containsAll(crac.getHvdcRangeAction("HVDC_RA1").getUsageRules()));
         assertTrue(crac.getNetworkAction("acEmulationDeactivation_BBE2AA11 FFR3AA11 1").getUsageRules().containsAll(crac.getHvdcRangeAction("HVDC_RA2").getUsageRules()));
+    }
+
+    @Test
+    void checkAddNetworkActionAssociatedWithHvdcRangeActionWithAndOrUsageRules() {
+        // The usage rules of the HVDC range action are AND/OR usage rules: they must be copied recursively
+        // to the AC emulation deactivation network action.
+        Network network = Network.read("TestCase16NodesWithHvdc_AC_emulation.xiidm", getClass().getResourceAsStream("/network/TestCase16NodesWithHvdc_AC_emulation.xiidm"));
+        Crac crac = CracFactory.findDefault().create("crac")
+            .newInstant("preventive", InstantKind.PREVENTIVE)
+            .newInstant("outage", InstantKind.OUTAGE)
+            .newInstant("auto", InstantKind.AUTO)
+            .newInstant("curative", InstantKind.CURATIVE);
+        crac.newContingency().withId("co").withContingencyElement("BBE1AA11 FFR5AA11 1", ContingencyElementType.LINE).add();
+        crac.newFlowCnec()
+            .withId("cnec-curative")
+            .withNetworkElement("BBE4AA11 FFR5AA11 1")
+            .withContingency("co")
+            .withInstant("curative")
+            .withNominalVoltage(380.)
+            .newThreshold().withSide(TwoSides.ONE).withMax(1000.).withUnit(Unit.AMPERE).add()
+            .add();
+        HvdcRangeAction hvdcRangeAction = crac.newHvdcRangeAction()
+            .withId("hvdc-ra")
+            .withNetworkElement("BBE2AA11 FFR3AA11 1")
+            .withSpeed(1)
+            .newRange().withMin(-1000).withMax(1000).add()
+            .newAndUsageRule()
+                .newOnContingencyStateUsageRule().withContingency("co").withInstant("auto").add()
+                .newOnSwitchStateUsageRule().withInstant("auto").withNetworkElement("switch").withExpectedOpen(true).add()
+                .add()
+            .newOrUsageRule()
+                .newOnConstraintUsageRule().withInstant("curative").withCnec("cnec-curative").add()
+                .newAndUsageRule()
+                    .newOnInstantUsageRule().withInstant("curative").add()
+                    .newOnSwitchStateUsageRule().withInstant("curative").withNetworkElement("switch").withExpectedOpen(false).add()
+                    .add()
+                .add()
+            .add();
+
+        addNetworkActionAssociatedWithHvdcRangeAction(crac, network);
+
+        NetworkAction acEmulationDeactivationAction = crac.getNetworkAction("acEmulationDeactivation_BBE2AA11 FFR3AA11 1");
+        assertNotNull(acEmulationDeactivationAction);
+        assertEquals(2, acEmulationDeactivationAction.getUsageRules().size());
+        assertEquals(hvdcRangeAction.getUsageRules(), acEmulationDeactivationAction.getUsageRules());
     }
 
     @Test

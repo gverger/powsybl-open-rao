@@ -22,12 +22,21 @@ import com.powsybl.openrao.data.crac.api.networkaction.NetworkAction;
 import com.powsybl.openrao.data.crac.api.networkaction.NetworkActionAdder;
 import com.powsybl.openrao.data.crac.api.rangeaction.HvdcRangeAction;
 import com.powsybl.openrao.data.crac.api.rangeaction.RangeAction;
+import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRule;
+import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRuleAdder;
+import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRuleAdderOwner;
 import com.powsybl.openrao.data.crac.api.usagerule.OnConstraint;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyState;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountry;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountryAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnInstant;
+import com.powsybl.openrao.data.crac.api.usagerule.OnSwitchState;
+import com.powsybl.openrao.data.crac.api.usagerule.OnSwitchStateAdderOwner;
+import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRule;
+import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRuleAdder;
+import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRuleAdderOwner;
 import com.powsybl.openrao.data.crac.api.usagerule.UsageRule;
+import com.powsybl.openrao.data.crac.api.usagerule.UsageRuleAdder;
 import com.powsybl.openrao.data.crac.io.commons.iidm.IidmHvdcHelper;
 import com.powsybl.openrao.raoapi.parameters.RaoParameters;
 import com.powsybl.openrao.raoapi.parameters.extensions.LoadFlowAndSensitivityParameters;
@@ -99,28 +108,49 @@ public final class HvdcUtils {
      * @param acEmulationDeactivationActionAdder the network action adder that will be used to add the usage rules
      */
     static void addAllUsageRules(HvdcRangeAction hvdcRangeAction, NetworkActionAdder acEmulationDeactivationActionAdder) {
-        for (UsageRule usageRule : hvdcRangeAction.getUsageRules()) {
-            if (usageRule instanceof OnInstant onInstant) {
-                acEmulationDeactivationActionAdder.newOnInstantUsageRule()
-                    .withInstant(onInstant.getInstant().getId())
-                    .add();
-            } else if (usageRule instanceof OnConstraint<?> onConstraint) {
-                acEmulationDeactivationActionAdder.newOnConstraintUsageRule()
-                    .withInstant(onConstraint.getInstant().getId())
-                    .withCnec(onConstraint.getCnec().getId())
-                    .add();
-            } else if (usageRule instanceof OnContingencyState onContingencyState) {
-                acEmulationDeactivationActionAdder.newOnContingencyStateUsageRule()
-                    .withContingency(onContingencyState.getContingency().getId())
-                    .withInstant(onContingencyState.getInstant().getId())
-                    .add();
-            } else if (usageRule instanceof OnFlowConstraintInCountry onFlowConstraintInCountry) {
-                OnFlowConstraintInCountryAdder<NetworkActionAdder> usageRuleAdder = acEmulationDeactivationActionAdder.newOnFlowConstraintInCountryUsageRule()
-                    .withCountry(onFlowConstraintInCountry.getCountry())
-                    .withInstant(onFlowConstraintInCountry.getInstant().getId());
-                onFlowConstraintInCountry.getContingency().ifPresent(contingency -> usageRuleAdder.withContingency(contingency.getId()));
-                usageRuleAdder.add();
-            }
+        hvdcRangeAction.getUsageRules().forEach(usageRule -> addUsageRule(usageRule, acEmulationDeactivationActionAdder));
+    }
+
+    /**
+     * Add a copy of the usage rule with the adder. AND/OR usage rules are copied recursively.
+     */
+    private static void addUsageRule(UsageRule usageRule, UsageRuleAdder<?> usageRuleAdder) {
+        if (usageRule instanceof AndUsageRule andUsageRule && usageRuleAdder instanceof AndUsageRuleAdderOwner<?> andUsageRuleAdderOwner) {
+            AndUsageRuleAdder<?> andUsageRuleAdder = andUsageRuleAdderOwner.newAndUsageRule();
+            andUsageRule.getUsageRules().forEach(combinedUsageRule -> addUsageRule(combinedUsageRule, andUsageRuleAdder));
+            andUsageRuleAdder.add();
+        } else if (usageRule instanceof OrUsageRule orUsageRule && usageRuleAdder instanceof OrUsageRuleAdderOwner<?> orUsageRuleAdderOwner) {
+            OrUsageRuleAdder<?> orUsageRuleAdder = orUsageRuleAdderOwner.newOrUsageRule();
+            orUsageRule.getUsageRules().forEach(combinedUsageRule -> addUsageRule(combinedUsageRule, orUsageRuleAdder));
+            orUsageRuleAdder.add();
+        } else if (usageRule instanceof OnSwitchState onSwitchState && usageRuleAdder instanceof OnSwitchStateAdderOwner<?> onSwitchStateAdderOwner) {
+            onSwitchStateAdderOwner.newOnSwitchStateUsageRule()
+                .withInstant(onSwitchState.getInstant().getId())
+                .withNetworkElement(onSwitchState.getSwitchElement().getId())
+                .withExpectedOpen(onSwitchState.isExpectedOpen())
+                .add();
+        } else if (usageRule instanceof OnInstant onInstant) {
+            usageRuleAdder.newOnInstantUsageRule()
+                .withInstant(onInstant.getInstant().getId())
+                .add();
+        } else if (usageRule instanceof OnConstraint<?> onConstraint) {
+            usageRuleAdder.newOnConstraintUsageRule()
+                .withInstant(onConstraint.getInstant().getId())
+                .withCnec(onConstraint.getCnec().getId())
+                .add();
+        } else if (usageRule instanceof OnContingencyState onContingencyState) {
+            usageRuleAdder.newOnContingencyStateUsageRule()
+                .withContingency(onContingencyState.getContingency().getId())
+                .withInstant(onContingencyState.getInstant().getId())
+                .add();
+        } else if (usageRule instanceof OnFlowConstraintInCountry onFlowConstraintInCountry) {
+            OnFlowConstraintInCountryAdder<?> onFlowConstraintInCountryAdder = usageRuleAdder.newOnFlowConstraintInCountryUsageRule()
+                .withCountry(onFlowConstraintInCountry.getCountry())
+                .withInstant(onFlowConstraintInCountry.getInstant().getId());
+            onFlowConstraintInCountry.getContingency().ifPresent(contingency -> onFlowConstraintInCountryAdder.withContingency(contingency.getId()));
+            onFlowConstraintInCountryAdder.add();
+        } else {
+            throw new OpenRaoException(String.format("Usage rule of type %s cannot be copied here", usageRule.getClass().getSimpleName()));
         }
     }
 
