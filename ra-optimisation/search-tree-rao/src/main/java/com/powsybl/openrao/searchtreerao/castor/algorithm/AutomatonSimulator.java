@@ -22,8 +22,12 @@ import com.powsybl.openrao.data.crac.api.networkaction.NetworkAction;
 import com.powsybl.openrao.data.crac.api.rangeaction.HvdcRangeAction;
 import com.powsybl.openrao.data.crac.api.rangeaction.PstRangeAction;
 import com.powsybl.openrao.data.crac.api.rangeaction.RangeAction;
-import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyState;
-import com.powsybl.openrao.data.crac.api.usagerule.OnInstant;
+import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRule;
+import com.powsybl.openrao.data.crac.api.usagerule.OnConstraint;
+import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountry;
+import com.powsybl.openrao.data.crac.api.usagerule.OnFlowThreshold;
+import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRule;
+import com.powsybl.openrao.data.crac.api.usagerule.UsageRule;
 import com.powsybl.openrao.data.raoresult.api.ComputationStatus;
 import com.powsybl.openrao.raoapi.parameters.RaoParameters;
 import com.powsybl.openrao.searchtreerao.commons.RaoUtil;
@@ -471,16 +475,66 @@ public final class AutomatonSimulator {
     /**
      * This function gathers the flow cnecs to be considered while shifting range actions,
      * depending on the range action availableRa's usage rule.
+     * AND/OR usage rules are explored recursively: see {@link #gatherFlowCnecsForUsageRule}.
      */
     Set<FlowCnec> gatherFlowCnecsForAutoRangeAction(RangeAction<?> availableRa,
                                                     State automatonState,
                                                     Network network) {
-        if (availableRa.getUsageRules().stream().filter(usageRule -> usageRule instanceof OnInstant || usageRule instanceof OnContingencyState)
-            .anyMatch(usageRule -> usageRule.isDefinedForState(automatonState))) {
-            return crac.getFlowCnecs(automatonState);
+        Set<FlowCnec> stateFlowCnecs = crac.getFlowCnecs(automatonState);
+        // the usage rules of a remedial action are combined with an OR
+        return gatherFlowCnecsForUsageRules(availableRa.getUsageRules(), true, availableRa, automatonState, stateFlowCnecs, network)
+            .orElse(stateFlowCnecs);
+    }
+
+    /**
+     * Returns the flow cnecs a usage rule is restricted to, or an empty Optional if the usage rule is not
+     * restricted to some flow cnecs (OnInstant, OnContingencyState, OnSwitchState), in which case all the
+     * flow cnecs of the state must be considered. A usage rule not defined for the state is restricted to no flow cnec.
+     */
+    private static Optional<Set<FlowCnec>> gatherFlowCnecsForUsageRule(UsageRule usageRule,
+                                                                     RemedialAction<?> remedialAction,
+                                                                     State automatonState,
+                                                                     Set<FlowCnec> stateFlowCnecs,
+                                                                     Network network) {
+        if (!usageRule.isDefinedForState(automatonState)) {
+            return Optional.of(Set.of());
+        } else if (usageRule instanceof AndUsageRule andUsageRule) {
+            return gatherFlowCnecsForUsageRules(andUsageRule.getUsageRules(), false, remedialAction, automatonState, stateFlowCnecs, network);
+        } else if (usageRule instanceof OrUsageRule orUsageRule) {
+            return gatherFlowCnecsForUsageRules(orUsageRule.getUsageRules(), true, remedialAction, automatonState, stateFlowCnecs, network);
+        } else if (usageRule instanceof OnFlowConstraintInCountry || usageRule instanceof OnFlowThreshold
+            || usageRule instanceof OnConstraint<?> onConstraint && onConstraint.getCnec() instanceof FlowCnec) {
+            return Optional.of(remedialAction.getFlowCnecsConstrainingForOneUsageRule(usageRule, stateFlowCnecs, network));
+        } else if (usageRule instanceof OnConstraint<?>) {
+            // OnConstraint on an angle or voltage cnec: no flow cnec to consider
+            return Optional.of(Set.of());
         } else {
-            return availableRa.getFlowCnecsConstrainingUsageRules(crac.getFlowCnecs(automatonState), network, automatonState);
+            return Optional.empty();
         }
+    }
+
+    /**
+     * Combines the flow cnecs of usage rules gathered by {@link #gatherFlowCnecsForUsageRule}:
+     * - with an OR (isDisjunction), the combination is not restricted as soon as one usage rule is not restricted;
+     * - with an AND, the combination is not restricted only if no usage rule is restricted.
+     * Otherwise, the combination is restricted to the union of the flow cnecs of the restricted usage rules.
+     */
+    private static Optional<Set<FlowCnec>> gatherFlowCnecsForUsageRules(Set<UsageRule> usageRules,
+                                                                      boolean isDisjunction,
+                                                                      RemedialAction<?> remedialAction,
+                                                                      State automatonState,
+                                                                      Set<FlowCnec> stateFlowCnecs,
+                                                                      Network network) {
+        List<Optional<Set<FlowCnec>>> flowCnecsPerUsageRule = usageRules.stream()
+            .map(usageRule -> gatherFlowCnecsForUsageRule(usageRule, remedialAction, automatonState, stateFlowCnecs, network))
+            .toList();
+        boolean isRestricted = isDisjunction
+            ? flowCnecsPerUsageRule.stream().allMatch(Optional::isPresent)
+            : flowCnecsPerUsageRule.stream().anyMatch(Optional::isPresent);
+        if (!isRestricted) {
+            return Optional.empty();
+        }
+        return Optional.of(flowCnecsPerUsageRule.stream().flatMap(Optional::stream).flatMap(Set::stream).collect(Collectors.toSet()));
     }
 
     /**

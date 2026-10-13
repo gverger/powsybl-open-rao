@@ -284,6 +284,77 @@ class AutomatonSimulatorTest {
     }
 
     @Test
+    void testGatherCnecsWithAndOrUsageRules() {
+        // AND without any flow constraint: all the cnecs of the state are considered
+        RangeAction<?> raAndSwitch = crac.newPstRangeAction()
+            .withId("ra-and-switch")
+            .withNetworkElement("ra-and-switch-ne")
+            .withSpeed(1)
+            .newAndUsageRule()
+                .newOnContingencyStateUsageRule().withContingency("contingency1").withInstant(AUTO_INSTANT_ID).add()
+                .newOnSwitchStateUsageRule().withInstant(AUTO_INSTANT_ID).withNetworkElement("switch").withExpectedOpen(true).add()
+                .add()
+            .withInitialTap(0).withTapToAngleConversionMap(Map.of(0, -100., 1, 100.))
+            .add();
+        assertEquals(Set.of(cnec1, cnec2), automatonSimulator.gatherFlowCnecsForAutoRangeAction(raAndSwitch, autoState, network));
+
+        // OR with a usage rule defined for the whole state: all the cnecs of the state are considered
+        RangeAction<?> raOrContingency = crac.newPstRangeAction()
+            .withId("ra-or-contingency")
+            .withNetworkElement("ra-or-contingency-ne")
+            .withSpeed(1)
+            .newOrUsageRule()
+                .newOnContingencyStateUsageRule().withContingency("contingency1").withInstant(AUTO_INSTANT_ID).add()
+                .newOnConstraintUsageRule().withInstant(AUTO_INSTANT_ID).withCnec("cnec1").add()
+                .add()
+            .withInitialTap(0).withTapToAngleConversionMap(Map.of(0, -100., 1, 100.))
+            .add();
+        assertEquals(Set.of(cnec1, cnec2), automatonSimulator.gatherFlowCnecsForAutoRangeAction(raOrContingency, autoState, network));
+
+        // AND with a flow constraint: only the constraining cnec is considered
+        RangeAction<?> raAndConstraint = crac.newPstRangeAction()
+            .withId("ra-and-constraint")
+            .withNetworkElement("ra-and-constraint-ne")
+            .withSpeed(1)
+            .newAndUsageRule()
+                .newOnContingencyStateUsageRule().withContingency("contingency1").withInstant(AUTO_INSTANT_ID).add()
+                .newOnConstraintUsageRule().withInstant(AUTO_INSTANT_ID).withCnec("cnec1").add()
+                .add()
+            .withInitialTap(0).withTapToAngleConversionMap(Map.of(0, -100., 1, 100.))
+            .add();
+        assertEquals(Set.of(cnec1), automatonSimulator.gatherFlowCnecsForAutoRangeAction(raAndConstraint, autoState, network));
+
+        // OR with a usage rule not defined for the state: it is ignored
+        RangeAction<?> raOrConstraint = crac.newPstRangeAction()
+            .withId("ra-or-constraint")
+            .withNetworkElement("ra-or-constraint-ne")
+            .withSpeed(1)
+            .newOrUsageRule()
+                .newOnInstantUsageRule().withInstant(PREVENTIVE_INSTANT_ID).add()
+                .newOnConstraintUsageRule().withInstant(AUTO_INSTANT_ID).withCnec("cnec1").add()
+                .add()
+            .withInitialTap(0).withTapToAngleConversionMap(Map.of(0, -100., 1, 100.))
+            .add();
+        assertEquals(Set.of(cnec1), automatonSimulator.gatherFlowCnecsForAutoRangeAction(raOrConstraint, autoState, network));
+
+        // AND with a nested OR
+        RangeAction<?> raNested = crac.newPstRangeAction()
+            .withId("ra-nested")
+            .withNetworkElement("ra-nested-ne")
+            .withSpeed(1)
+            .newAndUsageRule()
+                .newOnSwitchStateUsageRule().withInstant(AUTO_INSTANT_ID).withNetworkElement("switch").withExpectedOpen(true).add()
+                .newOrUsageRule()
+                    .newOnInstantUsageRule().withInstant(PREVENTIVE_INSTANT_ID).add()
+                    .newOnConstraintUsageRule().withInstant(AUTO_INSTANT_ID).withCnec("cnec2").add()
+                    .add()
+                .add()
+            .withInitialTap(0).withTapToAngleConversionMap(Map.of(0, -100., 1, 100.))
+            .add();
+        assertEquals(Set.of(cnec2), automatonSimulator.gatherFlowCnecsForAutoRangeAction(raNested, autoState, network));
+    }
+
+    @Test
     void testCheckAlignedRangeActions1() {
         // OK
         assertTrue(AutomatonSimulator.checkAlignedRangeActions(List.of(ara1, ara2), List.of(ara1, ara2), ReportNode.NO_OP));

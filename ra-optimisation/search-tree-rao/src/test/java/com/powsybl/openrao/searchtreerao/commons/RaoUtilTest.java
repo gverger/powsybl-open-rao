@@ -242,6 +242,9 @@ class RaoUtilTest {
         State automatonState = Mockito.mock(State.class);
         when(automatonState.getInstant()).thenReturn(crac.getInstant(AUTO_INSTANT_ID));
         when(automatonState.getId()).thenReturn("fake automaton state");
+        // isDefinedForState is a default method of the usage rule interfaces: mocks must call it for real
+        when(onInstant.isDefinedForState(any())).thenCallRealMethod();
+        when(onFlowConstraint.isDefinedForState(any())).thenCallRealMethod();
 
         // remedial action with OnInstant Usage Rule
         when(automatonRa.getUsageRules()).thenReturn(Set.of(onInstant));
