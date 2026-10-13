@@ -11,7 +11,7 @@ import com.powsybl.openrao.data.crac.api.Instant;
 
 /**
  * A UsageRule that is defined at a single, well-identified Instant. Every leaf UsageRule (OnInstant,
- * OnContingencyState, OnConstraint, OnFlowConstraintInCountry, OnSwitchState, OnFlowThreshold) is a
+ * OnContingencyState, OnConstraint, OnFlowConstraintInCountry, OnSwitchState) is a
  * SingleInstantUsageRule. {@link AndUsageRule} and {@link OrUsageRule} are not: they combine UsageRules
  * that may be defined at different Instants, so they have no single Instant of their own.
  *

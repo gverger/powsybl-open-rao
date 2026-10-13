@@ -13,7 +13,6 @@ import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.OnConstraint;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyState;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountry;
-import com.powsybl.openrao.data.crac.api.usagerule.OnFlowThreshold;
 import com.powsybl.openrao.data.crac.api.usagerule.OnInstant;
 import com.powsybl.openrao.data.crac.api.usagerule.OnSwitchState;
 import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRule;
@@ -46,7 +45,6 @@ public final class UsageRulesSerializer {
         serializeUsageRulesOfType(usageRules, OnConstraint.class, JsonSerializationConstants.ON_CONSTRAINT_USAGE_RULES, gen);
         serializeUsageRulesOfType(usageRules, OnFlowConstraintInCountry.class, JsonSerializationConstants.ON_FLOW_CONSTRAINT_IN_COUNTRY_USAGE_RULES, gen);
         serializeUsageRulesOfType(usageRules, OnSwitchState.class, JsonSerializationConstants.ON_SWITCH_STATE_USAGE_RULES, gen);
-        serializeUsageRulesOfType(usageRules, OnFlowThreshold.class, JsonSerializationConstants.ON_FLOW_THRESHOLD_USAGE_RULES, gen);
         serializeUsageRulesOfType(usageRules, AndUsageRule.class, JsonSerializationConstants.AND_USAGE_RULES, gen);
         serializeUsageRulesOfType(usageRules, OrUsageRule.class, JsonSerializationConstants.OR_USAGE_RULES, gen);
     }

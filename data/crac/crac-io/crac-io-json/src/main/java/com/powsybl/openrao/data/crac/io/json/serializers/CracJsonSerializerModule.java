@@ -36,7 +36,6 @@ import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.OnConstraint;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyState;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountry;
-import com.powsybl.openrao.data.crac.api.usagerule.OnFlowThreshold;
 import com.powsybl.openrao.data.crac.api.usagerule.OnInstant;
 import com.powsybl.openrao.data.crac.api.usagerule.OnSwitchState;
 import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRule;
@@ -64,7 +63,6 @@ public class CracJsonSerializerModule extends SimpleModule {
         this.addSerializer(OnConstraint.class, new OnConstraintSerializer());
         this.addSerializer(OnFlowConstraintInCountry.class, new OnFlowConstraintInCountrySerializer());
         this.addSerializer(OnSwitchState.class, new OnSwitchStateSerializer());
-        this.addSerializer(OnFlowThreshold.class, new OnFlowThresholdSerializer());
         this.addSerializer(AndUsageRule.class, new AndUsageRuleSerializer());
         this.addSerializer(OrUsageRule.class, new OrUsageRuleSerializer());
         this.addSerializer(TapRange.class, new TapRangeSerializer());

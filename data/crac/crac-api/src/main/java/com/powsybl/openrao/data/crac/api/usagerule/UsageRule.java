@@ -15,7 +15,7 @@ import java.util.stream.Stream;
  * The UsageRule defines conditions under which a RemedialAction can be used.
  *
  * Most UsageRules ({@link OnInstant}, {@link OnContingencyState}, {@link OnConstraint},
- * {@link OnFlowConstraintInCountry}, {@link OnSwitchState}, {@link OnFlowThreshold}) are defined at a
+ * {@link OnFlowConstraintInCountry}, {@link OnSwitchState}) are defined at a
  * single Instant: see {@link SingleInstantUsageRule}. {@link AndUsageRule} and {@link OrUsageRule} are
  * gate logic combinations of other UsageRules, which may themselves be defined at different Instants
  * (e.g. an OnConstraint at "preventive" OR an OnContingencyState at "curative"), so they have no single

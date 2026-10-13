@@ -33,12 +33,6 @@
         "$ref": "../on-switch-state-usage-rule/on-switch-state-usage-rule-v2.12.json"
       }
     },
-    "onFlowThresholdUsageRules": {
-      "type": "array",
-      "items": {
-        "$ref": "../on-flow-threshold-usage-rule/on-flow-threshold-usage-rule-v2.12.json"
-      }
-    },
     "orUsageRules": {
       "type": "array",
       "items": {

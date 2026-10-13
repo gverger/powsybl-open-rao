@@ -11,7 +11,6 @@ import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRuleAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnConstraintAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyStateAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountryAdder;
-import com.powsybl.openrao.data.crac.api.usagerule.OnFlowThresholdAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnInstantAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnSwitchStateAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRuleAdder;
@@ -73,15 +72,10 @@ public class OrUsageRuleAdderImpl<T extends UsageRuleGateAdderOwner> implements 
     }
 
     @Override
-    public OnFlowThresholdAdder<OrUsageRuleAdder<T>> newOnFlowThresholdUsageRule() {
-        return new OnFlowThresholdAdderImpl(this);
-    }
-
-    @Override
     public T add() {
         AdderUtils.assertAttributeNotEmpty(usageRules, CLASS_NAME, "usage rule",
             "newOnInstantUsageRule(), newOnContingencyStateUsageRule(), newOnConstraintUsageRule(), "
-                + "newOnFlowConstraintInCountryUsageRule(), newOnSwitchStateUsageRule(), newOnFlowThresholdUsageRule() or newAndUsageRule()");
+                + "newOnFlowConstraintInCountryUsageRule(), newOnSwitchStateUsageRule() or newAndUsageRule()");
         owner.addUsageRule(new OrUsageRuleImpl(usageRules));
         return owner;
     }

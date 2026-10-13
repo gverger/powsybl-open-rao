@@ -24,7 +24,6 @@ import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.OnConstraint;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyState;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountry;
-import com.powsybl.openrao.data.crac.api.usagerule.OnFlowThreshold;
 import com.powsybl.openrao.data.crac.api.usagerule.OnInstant;
 import com.powsybl.openrao.data.crac.api.usagerule.OnSwitchState;
 import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRule;
@@ -72,7 +71,7 @@ public final class JsonSerializationConstants {
     v2.9: add acEmulationDeactivationAction
     v2.10: renaming of danglingLineActions to boundaryLineActions, remove max-tso from ra-usage-limit-per-instant, add rangeType for all range actions
     v2.11: removal of networkElementsNamePerId, renaming counter-trade actions' importingCountry to importingArea, and exportingCountry to exportingArea
-    v2.12: addition of andUsageRules/orUsageRules gate logic combinations (and, nested within them, onSwitchStateUsageRules/onFlowThresholdUsageRules)
+    v2.12: addition of andUsageRules/orUsageRules gate logic combinations (and, nested within them, onSwitchStateUsageRules)
      */
 
     // headers
@@ -155,9 +154,6 @@ public final class JsonSerializationConstants {
     public static final String ON_VOLTAGE_CONSTRAINT_USAGE_RULES = "onVoltageConstraintUsageRules";
     public static final String ON_FLOW_CONSTRAINT_IN_COUNTRY_USAGE_RULES = "onFlowConstraintInCountryUsageRules";
     public static final String ON_SWITCH_STATE_USAGE_RULES = "onSwitchStateUsageRules";
-    public static final String ON_FLOW_THRESHOLD_USAGE_RULES = "onFlowThresholdUsageRules";
-    public static final String AT_LEAST = "atLeast";
-    public static final String AT_MOST = "atMost";
     public static final String AND_USAGE_RULES = "andUsageRules";
     public static final String OR_USAGE_RULES = "orUsageRules";
     public static final String EXPECTED_OPEN = "expectedOpen";
@@ -486,9 +482,6 @@ public final class JsonSerializationConstants {
             }
             if (o1 instanceof OnSwitchState oss1) {
                 return oss1.getSwitchElement().getId().compareTo(((OnSwitchState) o2).getSwitchElement().getId());
-            }
-            if (o1 instanceof OnFlowThreshold oft1) {
-                return oft1.getCnec().getId().compareTo(((OnFlowThreshold) o2).getCnec().getId());
             }
             throw new OpenRaoException(String.format("Unknown usage rule type: %s", o1.getClass()));
         }

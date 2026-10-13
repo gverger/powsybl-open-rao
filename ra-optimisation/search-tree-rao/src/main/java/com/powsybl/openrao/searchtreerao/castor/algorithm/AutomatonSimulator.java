@@ -25,7 +25,6 @@ import com.powsybl.openrao.data.crac.api.rangeaction.RangeAction;
 import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.OnConstraint;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountry;
-import com.powsybl.openrao.data.crac.api.usagerule.OnFlowThreshold;
 import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.UsageRule;
 import com.powsybl.openrao.data.raoresult.api.ComputationStatus;
@@ -502,7 +501,7 @@ public final class AutomatonSimulator {
             return gatherFlowCnecsForUsageRules(andUsageRule.getUsageRules(), false, remedialAction, automatonState, stateFlowCnecs, network);
         } else if (usageRule instanceof OrUsageRule orUsageRule) {
             return gatherFlowCnecsForUsageRules(orUsageRule.getUsageRules(), true, remedialAction, automatonState, stateFlowCnecs, network);
-        } else if (usageRule instanceof OnFlowConstraintInCountry || usageRule instanceof OnFlowThreshold
+        } else if (usageRule instanceof OnFlowConstraintInCountry
             || usageRule instanceof OnConstraint<?> onConstraint && onConstraint.getCnec() instanceof FlowCnec) {
             return Optional.of(remedialAction.getFlowCnecsConstrainingForOneUsageRule(usageRule, stateFlowCnecs, network));
         } else if (usageRule instanceof OnConstraint<?>) {
