@@ -13,6 +13,7 @@ import com.powsybl.contingency.Contingency;
 import com.powsybl.iidm.network.Bus;
 import com.powsybl.iidm.network.Network;
 import com.powsybl.iidm.network.Switch;
+import com.powsybl.iidm.network.Terminal;
 import com.powsybl.iidm.network.extensions.HvdcAngleDroopActivePowerControl;
 import com.powsybl.openrao.commons.OpenRaoException;
 import com.powsybl.openrao.commons.Unit;
@@ -42,6 +43,7 @@ import com.powsybl.openrao.searchtreerao.result.api.OptimizationResult;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -189,24 +191,41 @@ public final class RaoUtil {
             || usageRule instanceof OnConstraint<?> onConstraint && onConstraint.getCnec() instanceof FlowCnec) {
             return isAnyMarginNegative(flowResult, remedialAction.getFlowCnecsConstrainingForOneUsageRule(usageRule, flowCnecs, network), unit);
         } else if (usageRule instanceof OnSwitchState onSwitchState) {
-            return isSwitchInExpectedState(onSwitchState, network);
+            return isSwitchInExpectedState(onSwitchState, state, network);
         } else {
             return false;
         }
     }
 
     /**
-     * The switch state is read from the given network as it is: callers must make sure that it reflects the
-     * situation in which the usage rule is evaluated (e.g. with the preventive remedial actions applied when
-     * evaluating an automaton).
+     * The switch state is read from the given network, which must reflect the situation in which the usage
+     * rule is evaluated (e.g. with the preventive remedial actions and the faster automatons applied when
+     * evaluating an automaton). As the contingency of the state is never applied on this network (it is only
+     * simulated in the sensitivity computations), the switches that the contingency opens are also considered
+     * as open.
      */
-    private static boolean isSwitchInExpectedState(OnSwitchState onSwitchState, Network network) {
+    private static boolean isSwitchInExpectedState(OnSwitchState onSwitchState, State state, Network network) {
         String switchId = onSwitchState.getSwitchElement().getId();
         Switch networkSwitch = network.getSwitch(switchId);
         if (networkSwitch == null) {
             throw new OpenRaoException(format("Switch %s of OnSwitchState usage rule cannot be found in the network", switchId));
         }
-        return networkSwitch.isOpen() == onSwitchState.isExpectedOpen();
+        boolean isOpen = networkSwitch.isOpen()
+            || state.getContingency().map(contingency -> getSwitchesOpenedByContingency(contingency, network).contains(networkSwitch)).orElse(false);
+        return isOpen == onSwitchState.isExpectedOpen();
+    }
+
+    /**
+     * Returns the switches that the contingency opens when it is applied on the network, without modifying the network.
+     */
+    static Set<Switch> getSwitchesOpenedByContingency(Contingency contingency, Network network) {
+        if (!contingency.isValid(network)) {
+            throw new OpenRaoException("Unable to apply contingency " + contingency.getId());
+        }
+        Set<Switch> switchesToOpen = new HashSet<>();
+        Set<Terminal> terminalsToDisconnect = new HashSet<>();
+        contingency.getElements().forEach(element -> element.toModification().traverse(network, switchesToOpen, terminalsToDisconnect));
+        return switchesToOpen;
     }
 
     /**

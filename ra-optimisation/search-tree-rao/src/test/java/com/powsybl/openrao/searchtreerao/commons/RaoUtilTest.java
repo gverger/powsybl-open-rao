@@ -558,4 +558,59 @@ class RaoUtilTest {
 
     }
 
+    @Test
+    void testOnSwitchStateConsidersSwitchesOpenedByContingency() {
+        String switchId = "NNL3AA11 NNL3AA12 1";
+        Network networkWithSwitch = NetworkImportsUtil.import12NodesNetworkWithSwitch();
+        networkWithSwitch.getSwitch(switchId).setOpen(false);
+        Instant curativeInstant = crac.getInstant(CURATIVE_INSTANT_ID);
+
+        crac.newContingency()
+            .withId("Contingency switch")
+            .withContingencyElement(switchId, com.powsybl.contingency.ContingencyElementType.SWITCH)
+            .add();
+        crac.newContingency()
+            .withId("Contingency line")
+            .withContingencyElement("NNL1AA1  NNL2AA1  1", com.powsybl.contingency.ContingencyElementType.BRANCH)
+            .add();
+
+        NetworkAction raExpectingOpenSwitch = crac.newNetworkAction()
+            .withId("ra-expecting-open-switch")
+            .newSwitchAction().withNetworkElement("FFR1AA1  FFR3AA1  1").withActionType(ActionType.OPEN).add()
+            .newAndUsageRule()
+                .newOnSwitchStateUsageRule().withInstant(CURATIVE_INSTANT_ID).withNetworkElement(switchId).withExpectedOpen(true).add()
+                .add()
+            .add();
+        NetworkAction raExpectingClosedSwitch = crac.newNetworkAction()
+            .withId("ra-expecting-closed-switch")
+            .newSwitchAction().withNetworkElement("FFR1AA1  FFR3AA1  1").withActionType(ActionType.OPEN).add()
+            .newAndUsageRule()
+                .newOnSwitchStateUsageRule().withInstant(CURATIVE_INSTANT_ID).withNetworkElement(switchId).withExpectedOpen(false).add()
+                .add()
+            .add();
+
+        State stateWithSwitchContingency = mockState(curativeInstant, Optional.of(crac.getContingency("Contingency switch")));
+        State stateWithLineContingency = mockState(curativeInstant, Optional.of(crac.getContingency("Contingency line")));
+        State stateWithoutContingency = mockState(curativeInstant, Optional.empty());
+        FlowResult flowResult = mock(FlowResult.class);
+
+        // the switch is closed in the network but opened by the contingency
+        assertTrue(RaoUtil.canRemedialActionBeUsed(raExpectingOpenSwitch, stateWithSwitchContingency, flowResult, Set.of(), networkWithSwitch, raoParameters));
+        assertFalse(RaoUtil.canRemedialActionBeUsed(raExpectingClosedSwitch, stateWithSwitchContingency, flowResult, Set.of(), networkWithSwitch, raoParameters));
+        // the contingency does not open the switch
+        assertFalse(RaoUtil.canRemedialActionBeUsed(raExpectingOpenSwitch, stateWithLineContingency, flowResult, Set.of(), networkWithSwitch, raoParameters));
+        assertTrue(RaoUtil.canRemedialActionBeUsed(raExpectingClosedSwitch, stateWithLineContingency, flowResult, Set.of(), networkWithSwitch, raoParameters));
+        assertFalse(RaoUtil.canRemedialActionBeUsed(raExpectingOpenSwitch, stateWithoutContingency, flowResult, Set.of(), networkWithSwitch, raoParameters));
+        assertTrue(RaoUtil.canRemedialActionBeUsed(raExpectingClosedSwitch, stateWithoutContingency, flowResult, Set.of(), networkWithSwitch, raoParameters));
+        // the network is not modified
+        assertFalse(networkWithSwitch.getSwitch(switchId).isOpen());
+    }
+
+    private static State mockState(Instant instant, Optional<Contingency> contingency) {
+        State state = mock(State.class);
+        when(state.getInstant()).thenReturn(instant);
+        when(state.getContingency()).thenReturn(contingency);
+        return state;
+    }
+
 }
