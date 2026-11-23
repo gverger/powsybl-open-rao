@@ -53,8 +53,6 @@ public interface RemedialAction<I extends RemedialAction<I>> extends Identifiabl
      */
     Optional<Double> getActivationCost();
 
-    Set<FlowCnec> getFlowCnecsConstrainingUsageRules(Set<FlowCnec> perimeterCnecs, Network network, State optimizedState);
-
     Set<FlowCnec> getFlowCnecsConstrainingForOneUsageRule(UsageRule usageRule, Set<FlowCnec> perimeterCnecs, Network network);
 
     /**

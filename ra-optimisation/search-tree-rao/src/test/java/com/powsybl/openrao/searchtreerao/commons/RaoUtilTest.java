@@ -349,7 +349,7 @@ class RaoUtilTest {
                 ra,
                 optimizedState,
                 flowResult,
-                ra.getFlowCnecsConstrainingUsageRules(crac.getFlowCnecs(), network, optimizedState),
+                crac.getFlowCnecs(),
                 network,
                 raoParameters
             )

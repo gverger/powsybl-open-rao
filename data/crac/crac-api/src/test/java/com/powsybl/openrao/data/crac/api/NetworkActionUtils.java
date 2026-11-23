@@ -104,11 +104,6 @@ public final class NetworkActionUtils {
         }
 
         @Override
-        public Set<FlowCnec> getFlowCnecsConstrainingUsageRules(Set<FlowCnec> perimeterCnecs, Network network, State optimizedState) {
-            return null;
-        }
-
-        @Override
         public Set<FlowCnec> getFlowCnecsConstrainingForOneUsageRule(UsageRule usageRule, Set<FlowCnec> perimeterCnecs, Network network) {
             return null;
         }
