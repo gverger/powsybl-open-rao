@@ -14,17 +14,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * The AndUsageRule is a gate logic UsageRule, defined as the conjunction of a set of other UsageRules
- * (which can themselves be leaf UsageRules such as {@link OnInstant}, {@link OnContingencyState},
- * {@link OnConstraint} or {@link OnSwitchState}, or nested {@link OrUsageRule}). It is defined for a
- * given State if, and only if, all of its UsageRules are defined for this State.
- *
- * As each leaf UsageRule is only defined at its own Instant, an AndUsageRule is defined at the
- * intersection of the Instants of its UsageRules (see {@link #getInstants()}), which must not be empty:
- * e.g. OnConstraint(preventive, cnec1) AND OnSwitchState(curative, switchA) is defined for no State and is
- * rejected. The UsageRules may still be defined at several Instants when they are nested OrUsageRules:
- * e.g. OnContingencyState(curative, co1) AND (OnConstraint(preventive, cnec1) OR OnConstraint(curative, cnec2))
- * is defined at the curative Instant only. This is why AndUsageRule is not a {@link SingleInstantUsageRule}.
+ * Conjunction of UsageRules: defined for a State if all of its UsageRules are, hence at the intersection
+ * of their Instants (see {@link #getInstants()}).
  *
  * @author Guillaume Verger {@literal <guillaume.verger at artelys.com>}
  */

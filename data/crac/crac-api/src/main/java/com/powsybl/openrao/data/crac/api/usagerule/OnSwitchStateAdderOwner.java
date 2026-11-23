@@ -8,10 +8,9 @@
 package com.powsybl.openrao.data.crac.api.usagerule;
 
 /**
- * Common contract for anything an OnSwitchState UsageRule can be added to: an {@link AndUsageRuleAdder}
- * or an {@link OrUsageRuleAdder}. On purpose, this is not extended by {@link com.powsybl.openrao.data.crac.api.RemedialActionAdder}:
- * a RemedialAction cannot have a standalone OnSwitchState UsageRule, it can only combine one inside a
- * gate logic combination.
+ * Anything an OnSwitchState UsageRule can be added to: an {@link AndUsageRuleAdder} or an
+ * {@link OrUsageRuleAdder}. Not extended by {@link com.powsybl.openrao.data.crac.api.RemedialActionAdder}:
+ * an OnSwitchState cannot be a top-level usage rule.
  *
  * @author Guillaume Verger {@literal <guillaume.verger at artelys.com>}
  */

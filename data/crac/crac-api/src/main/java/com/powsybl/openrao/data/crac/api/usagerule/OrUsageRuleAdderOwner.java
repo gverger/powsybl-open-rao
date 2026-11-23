@@ -8,15 +8,11 @@
 package com.powsybl.openrao.data.crac.api.usagerule;
 
 /**
- * Common contract for anything an OrUsageRule can be added to: a {@link com.powsybl.openrao.data.crac.api.RemedialActionAdder},
- * or an {@link AndUsageRuleAdder} (to nest an OrUsageRule inside an AndUsageRule).
+ * Anything an OrUsageRule can be added to: a {@link com.powsybl.openrao.data.crac.api.RemedialActionAdder}
+ * or an {@link AndUsageRuleAdder}.
  *
  * @author Guillaume Verger {@literal <guillaume.verger at artelys.com>}
  */
 public interface OrUsageRuleAdderOwner<T> {
-    /**
-     * Starts building an OrUsageRule: a gate logic UsageRule defined as the disjunction of the
-     * UsageRules that will be added to it, which is then attached to this owner.
-     */
     OrUsageRuleAdder<T> newOrUsageRule();
 }

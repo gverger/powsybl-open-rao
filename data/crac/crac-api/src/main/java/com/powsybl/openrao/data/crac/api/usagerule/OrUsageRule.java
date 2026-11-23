@@ -14,15 +14,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * The OrUsageRule is a gate logic UsageRule, defined as the disjunction of a set of other UsageRules
- * (which can themselves be leaf UsageRules such as {@link OnInstant}, {@link OnContingencyState},
- * {@link OnConstraint} or {@link OnSwitchState}, or nested {@link AndUsageRule}). It is defined for a
- * given State if, and only if, at least one of its UsageRules is defined for this State.
- *
- * The UsageRules composing an OrUsageRule are not required to share the same Instant: e.g.
- * OnConstraint(preventive, cnec1) OR OnContingencyState(curative, contingency1) is a valid OrUsageRule.
- * This is why OrUsageRule is not a {@link SingleInstantUsageRule}: it is defined at the union of the
- * Instants of its UsageRules (see {@link #getInstants()}).
+ * Disjunction of UsageRules: defined for a State if at least one of its UsageRules is, hence at the union
+ * of their Instants (see {@link #getInstants()}).
  *
  * @author Guillaume Verger {@literal <guillaume.verger at artelys.com>}
  */

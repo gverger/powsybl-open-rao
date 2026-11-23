@@ -10,12 +10,8 @@ package com.powsybl.openrao.data.crac.impl;
 import com.powsybl.openrao.data.crac.api.usagerule.UsageRule;
 
 /**
- * Minimal contract shared by everything a leaf usage-rule adder (OnInstantAdderImpl,
- * OnContingencyStateAdderImpl, OnConstraintAdderImpl, OnFlowConstraintInCountryAdderImpl,
- * OnSwitchStateAdderImpl) can be attached to: either a RemedialActionAdder ({@link
- * AbstractRemedialActionAdder}), or a gate logic combination adder ({@link AndUsageRuleAdderImpl},
- * {@link OrUsageRuleAdderImpl}). It lets the same leaf adder implementations be reused whether they
- * are attached directly to a remedial action or nested inside a gate logic combination.
+ * Anything a usage rule adder can be attached to: {@link AbstractRemedialActionAdder},
+ * {@link AndUsageRuleAdderImpl} or {@link OrUsageRuleAdderImpl}.
  *
  * @author Guillaume Verger {@literal <guillaume.verger at artelys.com>}
  */

@@ -339,7 +339,6 @@ class AutomatonSimulatorTest {
             .add();
         assertEquals(Set.of(cnec1), automatonSimulator.gatherFlowCnecsForAutoRangeAction(raOrConstraint, autoState, network));
 
-        // AND with a nested OR
         RangeAction<?> raNested = crac.newPstRangeAction()
             .withId("ra-nested")
             .withNetworkElement("ra-nested-ne")

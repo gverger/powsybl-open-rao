@@ -486,11 +486,9 @@ public final class AutomatonSimulator {
     }
 
     /**
-     * Returns the flow cnecs a usage rule is restricted to, or an empty Optional if the usage rule is not
-     * restricted to some flow cnecs (OnInstant, OnContingencyState, OnSwitchState), in which case all the
-     * flow cnecs of the state must be considered. A usage rule that is not met (not defined for the state, or
-     * with a condition on the network that is not met, see {@link RaoUtil#isUsageRuleMetIgnoringFlowConstraints})
-     * is restricted to no flow cnec: it did not trigger the automaton and cannot widen the flow cnecs to secure.
+     * Returns the flow cnecs a usage rule is restricted to, or an empty Optional if all the flow cnecs of the
+     * state must be considered. A usage rule that is not met (see {@link RaoUtil#isUsageRuleMetIgnoringFlowConstraints})
+     * is restricted to no flow cnec.
      */
     private static Optional<Set<FlowCnec>> gatherFlowCnecsForUsageRule(UsageRule usageRule,
                                                                      RemedialAction<?> remedialAction,
@@ -514,12 +512,6 @@ public final class AutomatonSimulator {
         }
     }
 
-    /**
-     * Combines the flow cnecs of usage rules gathered by {@link #gatherFlowCnecsForUsageRule}:
-     * - with an OR (isDisjunction), the combination is not restricted as soon as one usage rule is not restricted;
-     * - with an AND, the combination is not restricted only if no usage rule is restricted.
-     * Otherwise, the combination is restricted to the union of the flow cnecs of the restricted usage rules.
-     */
     private static Optional<Set<FlowCnec>> gatherFlowCnecsForUsageRules(Set<UsageRule> usageRules,
                                                                       boolean isDisjunction,
                                                                       RemedialAction<?> remedialAction,

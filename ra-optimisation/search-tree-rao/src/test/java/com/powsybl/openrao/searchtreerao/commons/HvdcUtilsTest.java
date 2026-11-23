@@ -61,8 +61,6 @@ public class HvdcUtilsTest {
 
     @Test
     void checkAddNetworkActionAssociatedWithHvdcRangeActionWithAndOrUsageRules() {
-        // The usage rules of the HVDC range action are AND/OR usage rules: they must be copied recursively
-        // to the AC emulation deactivation network action.
         Network network = Network.read("TestCase16NodesWithHvdc_AC_emulation.xiidm", getClass().getResourceAsStream("/network/TestCase16NodesWithHvdc_AC_emulation.xiidm"));
         Crac crac = CracFactory.findDefault().create("crac")
             .newInstant("preventive", InstantKind.PREVENTIVE)

@@ -241,11 +241,8 @@ class UsageRuleTest {
         UsageRule curativeLeaf = new OnContingencyStateMock(curativeState1);
         UsageRule autoLeaf = new OnInstantMock(autoInstant);
 
-        // leaf: its own instant
         assertEquals(Set.of(preventiveInstant), preventiveLeaf.getInstants());
-        // OR: union
         assertEquals(Set.of(preventiveInstant, curativeInstant), new OrUsageRuleMock(Set.of(preventiveLeaf, curativeLeaf)).getInstants());
-        // AND: intersection
         assertEquals(Set.of(curativeInstant), new AndUsageRuleMock(Set.of(curativeLeaf, new OnInstantMock(curativeInstant))).getInstants());
         assertEquals(Set.of(), new AndUsageRuleMock(Set.of(preventiveLeaf, curativeLeaf)).getInstants());
         // nested: AND(curative, OR(preventive, curative)) -> curative only

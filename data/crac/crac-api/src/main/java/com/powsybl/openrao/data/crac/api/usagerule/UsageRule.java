@@ -15,13 +15,8 @@ import java.util.stream.Stream;
 
 /**
  * The UsageRule defines conditions under which a RemedialAction can be used.
- *
- * Most UsageRules ({@link OnInstant}, {@link OnContingencyState}, {@link OnConstraint},
- * {@link OnFlowConstraintInCountry}, {@link OnSwitchState}) are defined at a
- * single Instant: see {@link SingleInstantUsageRule}. {@link AndUsageRule} and {@link OrUsageRule} are
- * gate logic combinations of other UsageRules, which may themselves be defined at different Instants
- * (e.g. an OnConstraint at "preventive" OR an OnContingencyState at "curative"), so they have no single
- * Instant of their own: see {@link #getInstants()}.
+ * It is either a leaf ({@link SingleInstantUsageRule}) or a combination of UsageRules
+ * ({@link AndUsageRule}, {@link OrUsageRule}).
  *
  * @author Viktor Terrier {@literal <viktor.terrier at rte-france.com>}
  */
@@ -29,19 +24,14 @@ public interface UsageRule {
     boolean isDefinedForState(State state);
 
     /**
-     * Get the Instants at which the usage rule can be defined, following the gate logic:
-     * - a {@link SingleInstantUsageRule} is defined at its own Instant only;
-     * - an {@link OrUsageRule} at the union of the Instants of its UsageRules;
-     * - an {@link AndUsageRule} at the intersection of the Instants of its UsageRules.
-     * Contrary to {@link #flatten(UsageRule)}, which returns all the leaves, the Instants of a leaf that can
-     * never take part in the gate logic (e.g. a preventive leaf ANDed with a curative one) are not returned:
-     * use this method to classify a remedial action by Instant.
+     * Get the Instants at which the usage rule can be defined. Unlike {@link #flatten(UsageRule)}, the
+     * Instant of a leaf that can never be activated (e.g. a preventive leaf ANDed with a curative one) is
+     * not returned.
      */
     Set<Instant> getInstants();
 
     /**
-     * Recursively unfolds AndUsageRule/OrUsageRule gate logic combinations into the leaf,
-     * single-Instant UsageRules they combine.
+     * Get all the leaf UsageRules, recursively.
      */
     static Stream<SingleInstantUsageRule> flatten(UsageRule usageRule) {
         if (usageRule instanceof AndUsageRule andUsageRule) {

@@ -8,15 +8,9 @@
 package com.powsybl.openrao.data.crac.api.usagerule;
 
 /**
- * Common contract for anything that leaf UsageRules (OnInstant, OnContingencyState, OnConstraint,
- * OnFlowConstraintInCountry) can be added to: a {@link com.powsybl.openrao.data.crac.api.RemedialActionAdder},
- * or a gate logic combination adder ({@link AndUsageRuleAdder}, {@link OrUsageRuleAdder}).
- *
- * Extracting this contract lets code that adds leaf UsageRules (e.g. a Json deserializer) be written
- * once and reused regardless of whether the UsageRule is being attached directly to a remedial action
- * or nested inside a gate logic combination.
- *
- * OnSwitchState is deliberately not part of this contract: see {@link OnSwitchStateAdderOwner}.
+ * Anything leaf UsageRules can be added to: a {@link com.powsybl.openrao.data.crac.api.RemedialActionAdder},
+ * an {@link AndUsageRuleAdder} or an {@link OrUsageRuleAdder}. OnSwitchState is not part of it: see
+ * {@link OnSwitchStateAdderOwner}.
  *
  * @author Guillaume Verger {@literal <guillaume.verger at artelys.com>}
  */

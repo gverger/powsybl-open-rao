@@ -11,13 +11,9 @@ import com.powsybl.openrao.data.crac.api.NetworkElement;
 import com.powsybl.openrao.data.crac.api.State;
 
 /**
- * The OnSwitchState UsageRule is defined at a given Instant, and is triggered depending on the open/closed
- * state of a switch of the network. It is meant to be used as a leaf condition inside a gate logic
- * combination ({@link AndUsageRule}, {@link OrUsageRule}), together with other UsageRules, but it can also
- * be used on its own.
- *
- * Note that {@link #isDefinedForState(State)} only checks the Instant of the usage rule: the actual state
- * of the switch in the network can only be evaluated at RAO runtime, when a Network is available.
+ * UsageRule triggered by the open/closed state of a switch, only usable inside an {@link AndUsageRule} or
+ * an {@link OrUsageRule}. {@link #isDefinedForState(State)} only checks the Instant: the switch state is
+ * evaluated at RAO runtime, against the Network.
  *
  * @author Guillaume Verger {@literal <guillaume.verger at artelys.com>}
  */
@@ -28,8 +24,7 @@ public interface OnSwitchState extends SingleInstantUsageRule {
     NetworkElement getSwitchElement();
 
     /**
-     * Get the switch state expected to trigger the usage rule: true if the switch is expected to be open,
-     * false if it is expected to be closed
+     * True if the switch is expected to be open, false if it is expected to be closed
      */
     boolean isExpectedOpen();
 

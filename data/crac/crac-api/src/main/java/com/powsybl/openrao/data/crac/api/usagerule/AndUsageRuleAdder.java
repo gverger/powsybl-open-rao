@@ -8,12 +8,7 @@
 package com.powsybl.openrao.data.crac.api.usagerule;
 
 /**
- * Adds an AndUsageRule to its owner (a RemedialActionAdder, or another gate logic combination adder).
- * The UsageRules to be combined are added one by one, using the same newXxxUsageRule() factory methods
- * as a RemedialActionAdder; AndUsageRuleAdder and {@link OrUsageRuleAdder} can be nested inside one
- * another to build arbitrary boolean expressions.
- *
- * All the UsageRules added to this adder must share the same Instant.
+ * Adds an AndUsageRule to its owner (a RemedialActionAdder or an {@link OrUsageRuleAdder}).
  *
  * @author Guillaume Verger {@literal <guillaume.verger at artelys.com>}
  */

@@ -23,11 +23,6 @@ public final class OnSwitchStateArrayDeserializer {
     private OnSwitchStateArrayDeserializer() {
     }
 
-    /**
-     * ownerAdder can only be an AndUsageRuleAdder or an OrUsageRuleAdder: a RemedialActionAdder does not
-     * implement OnSwitchStateAdderOwner, so a standalone OnSwitchState UsageRule directly on a remedial
-     * action cannot be built or read back.
-     */
     public static void deserialize(JsonParser jsonParser, OnSwitchStateAdderOwner<?> ownerAdder, String version) throws IOException {
         while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
             OnSwitchStateAdder<?> adder = ownerAdder.newOnSwitchStateUsageRule();

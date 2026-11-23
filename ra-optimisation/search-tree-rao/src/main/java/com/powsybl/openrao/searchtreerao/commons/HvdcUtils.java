@@ -111,9 +111,6 @@ public final class HvdcUtils {
         hvdcRangeAction.getUsageRules().forEach(usageRule -> addUsageRule(usageRule, acEmulationDeactivationActionAdder));
     }
 
-    /**
-     * Add a copy of the usage rule with the adder. AND/OR usage rules are copied recursively.
-     */
     private static void addUsageRule(UsageRule usageRule, UsageRuleAdder<?> usageRuleAdder) {
         if (usageRule instanceof AndUsageRule andUsageRule && usageRuleAdder instanceof AndUsageRuleAdderOwner<?> andUsageRuleAdderOwner) {
             AndUsageRuleAdder<?> andUsageRuleAdder = andUsageRuleAdderOwner.newAndUsageRule();

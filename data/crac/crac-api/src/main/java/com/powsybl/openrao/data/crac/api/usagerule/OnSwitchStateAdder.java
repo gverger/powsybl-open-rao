@@ -8,8 +8,7 @@
 package com.powsybl.openrao.data.crac.api.usagerule;
 
 /**
- * Adds an OnSwitchState usage rule to its owner (a RemedialActionAdder, or a gate logic
- * combination adder such as {@link AndUsageRuleAdder} or {@link OrUsageRuleAdder}).
+ * Adds an OnSwitchState usage rule to an {@link AndUsageRuleAdder} or an {@link OrUsageRuleAdder}.
  *
  * @author Guillaume Verger {@literal <guillaume.verger at artelys.com>}
  */

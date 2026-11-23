@@ -107,11 +107,9 @@ public abstract class AbstractRemedialActionAdder<T extends RemedialActionAdder<
     }
 
     /**
-     * Warns about the leaf usage rules that can never be activated: a leaf usage rule is only defined at its own
-     * instant, so it can only be activated if this instant belongs to the instants of every AndUsageRule it is
-     * combined in (e.g. the preventive leaf of AND(OnContingencyState(curative), OR(OnInstant(preventive),
-     * OnInstant(curative)))). Unlike an AndUsageRule defined at no instant, which is rejected, such usage rules
-     * do not prevent the remedial action from being used, so they are only reported.
+     * Warns about the leaf usage rules whose instant is not among the instants of an AndUsageRule they are
+     * combined in, e.g. the preventive leaf of AND(OnContingencyState(curative), OR(OnInstant(preventive),
+     * OnInstant(curative))): they can never be activated.
      */
     protected void warnUnreachableUsageRules() {
         Map<SingleInstantUsageRule, Set<Instant>> unreachableUsageRules = new LinkedHashMap<>();

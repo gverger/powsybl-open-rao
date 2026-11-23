@@ -198,13 +198,9 @@ public final class RaoUtil {
     }
 
     /**
-     * Evaluates a usage rule like {@link #canRemedialActionBeUsed}, except that the flow constraints
-     * (OnConstraint, OnFlowConstraintInCountry) are considered met as soon as they are defined for the state,
-     * whether their cnecs are violated or not. Only the conditions on the network itself (OnSwitchState) are
-     * actually evaluated.
-     * This is used to select the flow cnecs a range automaton must secure: the flow constraints are what the
-     * automaton acts on, so they must all be secured (so that the automaton does not re-activate itself),
-     * whereas a condition on the network that is not met cannot be changed by the automaton.
+     * Evaluates a usage rule like {@link #canRemedialActionBeUsed}, except that flow constraints are considered
+     * met as soon as they are defined for the state: a range automaton must secure all of them, so that it does
+     * not re-activate itself.
      */
     public static boolean isUsageRuleMetIgnoringFlowConstraints(UsageRule usageRule, State state, Network network) {
         if (usageRule instanceof AndUsageRule andUsageRule) {
@@ -221,11 +217,8 @@ public final class RaoUtil {
     }
 
     /**
-     * The switch state is read from the given network, which must reflect the situation in which the usage
-     * rule is evaluated (e.g. with the preventive remedial actions and the faster automatons applied when
-     * evaluating an automaton). As the contingency of the state is never applied on this network (it is only
-     * simulated in the sensitivity computations), the switches that the contingency opens are also considered
-     * as open.
+     * The network must reflect the situation in which the usage rule is evaluated, except for the contingency
+     * of the state, which is never applied on it: the switches it opens are considered as open.
      */
     private static boolean isSwitchInExpectedState(OnSwitchState onSwitchState, State state, Network network) {
         String switchId = onSwitchState.getSwitchElement().getId();

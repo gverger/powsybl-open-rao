@@ -12,10 +12,7 @@ import com.powsybl.openrao.data.crac.api.Instant;
 import java.util.Set;
 
 /**
- * A UsageRule that is defined at a single, well-identified Instant. Every leaf UsageRule (OnInstant,
- * OnContingencyState, OnConstraint, OnFlowConstraintInCountry, OnSwitchState) is a
- * SingleInstantUsageRule. {@link AndUsageRule} and {@link OrUsageRule} are not: they combine UsageRules
- * that may be defined at different Instants, so they have no single Instant of their own.
+ * A leaf UsageRule, defined at a single Instant (as opposed to {@link AndUsageRule} and {@link OrUsageRule}).
  *
  * @author Guillaume Verger {@literal <guillaume.verger at artelys.com>}
  */

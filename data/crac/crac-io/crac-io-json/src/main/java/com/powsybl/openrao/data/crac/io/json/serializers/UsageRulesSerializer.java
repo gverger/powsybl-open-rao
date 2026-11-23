@@ -35,9 +35,7 @@ public final class UsageRulesSerializer {
     }
 
     /**
-     * Serializes a set of UsageRules as sibling fields of the currently open Json object: one array per
-     * UsageRule type. Used both for a RemedialAction's own top-level UsageRules, and, recursively, for the
-     * UsageRules combined by an AndUsageRule/OrUsageRule gate logic combination.
+     * Serializes the UsageRules in the currently open Json object, as one array per UsageRule type.
      */
     public static void serializeUsageRules(Set<UsageRule> usageRules, JsonGenerator gen) throws IOException {
         serializeUsageRulesOfType(usageRules, OnInstant.class, JsonSerializationConstants.ON_INSTANT_USAGE_RULES, gen);

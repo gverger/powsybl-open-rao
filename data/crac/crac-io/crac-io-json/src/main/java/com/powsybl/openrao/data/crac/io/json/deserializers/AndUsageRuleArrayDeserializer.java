@@ -23,11 +23,6 @@ public final class AndUsageRuleArrayDeserializer {
     private AndUsageRuleArrayDeserializer() {
     }
 
-    /**
-     * ownerAdder is typed as AndUsageRuleAdderOwner rather than RemedialActionAdder so that this
-     * deserializer can be reused both for a RemedialActionAdder's own top-level UsageRules, and,
-     * recursively, for the UsageRules combined by an OrUsageRule gate logic combination adder.
-     */
     public static void deserialize(JsonParser jsonParser, AndUsageRuleAdderOwner<?> ownerAdder, String version) throws IOException {
         while (jsonParser.nextToken() != JsonToken.END_ARRAY) {
             AndUsageRuleAdder<?> adder = ownerAdder.newAndUsageRule();
