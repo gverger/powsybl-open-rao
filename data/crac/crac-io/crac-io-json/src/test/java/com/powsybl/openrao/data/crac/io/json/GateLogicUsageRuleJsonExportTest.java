@@ -18,7 +18,6 @@ import com.powsybl.openrao.data.crac.api.InstantKind;
 import com.powsybl.openrao.data.crac.api.State;
 import com.powsybl.openrao.data.crac.api.networkaction.ActionType;
 import com.powsybl.openrao.data.crac.api.networkaction.NetworkAction;
-import com.powsybl.openrao.data.crac.api.parameters.CracCreationParameters;
 import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.OnConstraint;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyState;
@@ -31,7 +30,6 @@ import org.junit.jupiter.api.Test;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
@@ -44,9 +42,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *   cnecPreventive is constrained (preventive)
  *   OR (switchA is open AND cnecCurrent is constrained) (curative)
  *   OR contingencyA has happened (curative)
- * i.e. OrUsageRule(OnConstraint(preventive), AndUsageRule(OnSwitchState, OnConstraint)(curative), OnContingencyState(curative))
- * Note the mixed Instants directly under the OrUsageRule: a gate logic combination's children are not
- * required to share the same Instant. Checks what its Json export looks like, and that it can be read back.
  *
  * @author Guillaume Verger {@literal <guillaume.verger at artelys.com>}
  */
@@ -104,11 +99,9 @@ class GateLogicUsageRuleJsonExportTest {
     }
 
     @Test
-    void printGateLogicUsageRuleJson() {
+    void exportGateLogicUsageRule() {
         String json = exportToJson(createCrac());
-        System.out.println(json);
 
-        // sanity checks that the gate logic actually made it into the export
         assertTrue(json.contains("\"orUsageRules\""));
         assertTrue(json.contains("\"andUsageRules\""));
         assertTrue(json.contains("\"onSwitchStateUsageRules\""));
@@ -118,21 +111,11 @@ class GateLogicUsageRuleJsonExportTest {
     }
 
     @Test
-    void roundTripGateLogicUsageRule() {
+    void roundTripGateLogicUsageRule() throws IOException {
         Network network = NetworkImportsUtil.createNetworkForJsonRetrocompatibilityTest(0.0);
         String json = exportToJson(createCrac());
 
-        // Bypasses JsonSchemaProvider/Crac.read() format auto-detection on purpose: the per-type Json
-        // schemas (network-action-vX.json, etc.) have not been updated yet to allow the new
-        // onSwitchStateUsageRules/andUsageRules/orUsageRules fields, so Crac.read() would currently
-        // reject this file. Calling JsonImport().importData() directly exercises the deserializers
-        // without going through schema validation.
-        Crac importedCrac;
-        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))) {
-            importedCrac = new JsonImport().importData(inputStream, CracCreationParameters.load(), network).getCrac();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        Crac importedCrac = Crac.read("crac.json", new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), network);
 
         NetworkAction sps = importedCrac.getNetworkAction("spsId");
         Instant preventiveInstant = importedCrac.getInstant("preventive");
@@ -141,7 +124,6 @@ class GateLogicUsageRuleJsonExportTest {
         Set<UsageRule> usageRules = sps.getUsageRules();
         assertEquals(1, usageRules.size());
         OrUsageRule orUsageRule = assertInstanceOf(OrUsageRule.class, usageRules.iterator().next());
-        // OrUsageRule has no single Instant: its children are defined at different Instants.
         assertEquals(3, orUsageRule.getUsageRules().size());
 
         OnConstraint<?> preventiveOnConstraint = orUsageRule.getUsageRules().stream()
@@ -159,7 +141,6 @@ class GateLogicUsageRuleJsonExportTest {
         AndUsageRule andUsageRule = orUsageRule.getUsageRules().stream()
             .filter(AndUsageRule.class::isInstance).map(AndUsageRule.class::cast)
             .findAny().orElseThrow();
-        // AndUsageRule has no single Instant either; here all its children happen to share "curative".
         assertEquals(2, andUsageRule.getUsageRules().size());
 
         OnSwitchState onSwitchState = andUsageRule.getUsageRules().stream()
