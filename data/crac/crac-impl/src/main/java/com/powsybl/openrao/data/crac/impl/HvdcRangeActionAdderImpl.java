@@ -65,6 +65,7 @@ public class HvdcRangeActionAdderImpl extends AbstractStandardRangeActionAdder<H
 
     private void runCheckBeforeAdding() {
         checkId();
+        warnUnreachableUsageRules();
         checkAutoUsageRules();
         assertAttributeNotNull(networkElementId, HVDC_RANGE_ACTION, "network element", "withNetworkElement()");
         assertAttributeNotEmpty(ranges, HVDC_RANGE_ACTION, "range", "newRange()");

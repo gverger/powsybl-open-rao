@@ -50,6 +50,7 @@ class CounterTradeRangeActionAdderImpl extends AbstractStandardRangeActionAdder<
     @Override
     public CounterTradeRangeAction add() {
         checkId();
+        warnUnreachableUsageRules();
         checkAutoUsageRules();
         if (!Objects.isNull(getCrac().getRemedialAction(id))) {
             throw new OpenRaoException(String.format("A remedial action with id %s already exists", id));

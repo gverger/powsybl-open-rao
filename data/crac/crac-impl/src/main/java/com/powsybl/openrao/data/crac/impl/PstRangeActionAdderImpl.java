@@ -97,6 +97,7 @@ public class PstRangeActionAdderImpl extends AbstractRemedialActionAdder<PstRang
     @Override
     public PstRangeAction add() {
         checkId();
+        warnUnreachableUsageRules();
         checkAutoUsageRules();
         assertAttributeNotNull(networkElementId, PST_RANGE_ACTION, "network element", "withNetworkElement()");
         assertAttributeNotNull(initialTap, PST_RANGE_ACTION, "initial tap", "withInitialTap()");

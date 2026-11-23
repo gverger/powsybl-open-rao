@@ -11,17 +11,25 @@ import com.powsybl.openrao.commons.OpenRaoException;
 import com.powsybl.openrao.data.crac.api.Instant;
 import com.powsybl.openrao.data.crac.api.RemedialActionAdder;
 import com.powsybl.openrao.data.crac.api.cnec.Cnec;
+import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRuleAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnConstraintAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyStateAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountryAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnInstantAdder;
+import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRuleAdder;
+import com.powsybl.openrao.data.crac.api.usagerule.SingleInstantUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.UsageRule;
 
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+
+import static com.powsybl.openrao.commons.logs.OpenRaoLoggerProvider.BUSINESS_WARNS;
 
 /**
  * @author Peter Mitri {@literal <peter.mitri at rte-france.com>}
@@ -96,6 +104,36 @@ public abstract class AbstractRemedialActionAdder<T extends RemedialActionAdder<
     @Override
     public CracImpl getCrac() {
         return this.crac;
+    }
+
+    /**
+     * Warns about the leaf usage rules that can never be activated: a leaf usage rule is only defined at its own
+     * instant, so it can only be activated if this instant belongs to the instants of every AndUsageRule it is
+     * combined in (e.g. the preventive leaf of AND(OnContingencyState(curative), OR(OnInstant(preventive),
+     * OnInstant(curative)))). Unlike an AndUsageRule defined at no instant, which is rejected, such usage rules
+     * do not prevent the remedial action from being used, so they are only reported.
+     */
+    protected void warnUnreachableUsageRules() {
+        Map<SingleInstantUsageRule, Set<Instant>> unreachableUsageRules = new LinkedHashMap<>();
+        usageRules.forEach(usageRule -> collectUnreachableUsageRules(usageRule, unreachableUsageRules));
+        unreachableUsageRules.forEach((usageRule, andInstants) -> BUSINESS_WARNS.warn(
+            "Remedial action {}: {} usage rule at instant '{}' can never be activated, as it is combined in an AND usage rule only defined at instant(s) {}",
+            id,
+            usageRule.getClass().getSimpleName().replace("Impl", ""),
+            usageRule.getInstant().getId(),
+            andInstants.stream().sorted(Comparator.comparingInt(Instant::getOrder)).map(Instant::getId).toList()));
+    }
+
+    private static void collectUnreachableUsageRules(UsageRule usageRule, Map<SingleInstantUsageRule, Set<Instant>> unreachableUsageRules) {
+        if (usageRule instanceof AndUsageRule andUsageRule) {
+            Set<Instant> andInstants = andUsageRule.getInstants();
+            UsageRule.flatten(andUsageRule)
+                .filter(leaf -> !andInstants.contains(leaf.getInstant()))
+                .forEach(leaf -> unreachableUsageRules.putIfAbsent(leaf, andInstants));
+            andUsageRule.getUsageRules().forEach(child -> collectUnreachableUsageRules(child, unreachableUsageRules));
+        } else if (usageRule instanceof OrUsageRule orUsageRule) {
+            orUsageRule.getUsageRules().forEach(child -> collectUnreachableUsageRules(child, unreachableUsageRules));
+        }
     }
 
     static void checkOnConstraintUsageRules(Instant instant, Cnec<?> cnec) {

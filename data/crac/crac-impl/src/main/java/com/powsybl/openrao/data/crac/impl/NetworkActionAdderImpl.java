@@ -95,6 +95,7 @@ public class NetworkActionAdderImpl extends AbstractRemedialActionAdder<NetworkA
     @Override
     public NetworkAction add() {
         checkId();
+        warnUnreachableUsageRules();
 
         if (!Objects.isNull(getCrac().getRemedialAction(id))) {
             throw new OpenRaoException(String.format("A remedial action with id %s already exists", id));
