@@ -198,6 +198,29 @@ public final class RaoUtil {
     }
 
     /**
+     * Evaluates a usage rule like {@link #canRemedialActionBeUsed}, except that the flow constraints
+     * (OnConstraint, OnFlowConstraintInCountry) are considered met as soon as they are defined for the state,
+     * whether their cnecs are violated or not. Only the conditions on the network itself (OnSwitchState) are
+     * actually evaluated.
+     * This is used to select the flow cnecs a range automaton must secure: the flow constraints are what the
+     * automaton acts on, so they must all be secured (so that the automaton does not re-activate itself),
+     * whereas a condition on the network that is not met cannot be changed by the automaton.
+     */
+    public static boolean isUsageRuleMetIgnoringFlowConstraints(UsageRule usageRule, State state, Network network) {
+        if (usageRule instanceof AndUsageRule andUsageRule) {
+            return andUsageRule.getUsageRules().stream().allMatch(ur -> isUsageRuleMetIgnoringFlowConstraints(ur, state, network));
+        } else if (usageRule instanceof OrUsageRule orUsageRule) {
+            return orUsageRule.getUsageRules().stream().anyMatch(ur -> isUsageRuleMetIgnoringFlowConstraints(ur, state, network));
+        } else if (!usageRule.isDefinedForState(state)) {
+            return false;
+        } else if (usageRule instanceof OnSwitchState onSwitchState) {
+            return isSwitchInExpectedState(onSwitchState, state, network);
+        } else {
+            return true;
+        }
+    }
+
+    /**
      * The switch state is read from the given network, which must reflect the situation in which the usage
      * rule is evaluated (e.g. with the preventive remedial actions and the faster automatons applied when
      * evaluating an automaton). As the contingency of the state is never applied on this network (it is only

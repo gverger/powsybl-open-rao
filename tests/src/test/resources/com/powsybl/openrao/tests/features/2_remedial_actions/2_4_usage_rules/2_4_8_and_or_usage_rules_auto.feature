@@ -214,3 +214,26 @@ Feature: 2.4.8: AND/OR usage rules on automatons
     Then the margin on cnec "NNL1AA1  NNL2AA1  1 - Defaut FR1 FR2 - auto" after ARA should be -27.1 A
     Then the margin on cnec "BBE2AA1  FFR3AA1  1 - Defaut FR1 FR2 - auto" after ARA should be 437.6 A
     Then the worst margin is -27.1 A
+
+  @fast @rao @ac @contingency-scenarios @secure-flow
+  Scenario: 2.4.8.11: PST automaton with an OR of an unmet AND(OnContingencyState, OnSwitchState) and a met OnConstraint usage rule
+  # Same as 2.4.8.10, but ara_pst_be is guarded by OR(AND(OnContingencyState, OnSwitchState expecting the
+  # coupler open), OnConstraint on the violated auto cnec "NNL1AA1  NNL2AA1  1 - Defaut FR1 FR2 - auto"),
+  # and the threshold of the auto cnec on "BBE2AA1  FFR3AA1  1" is lowered to 1000 A, so that it is the most
+  # violated one (-62.4 A) and needs the PST to shift in the opposite direction. The coupler is closed by
+  # pra_close_de3, so the AND branch is unmet and the automaton is only triggered by the OnConstraint: it
+  # only secures "NNL1AA1  NNL2AA1  1" (tap 5, as in 2.4.8.9). If the unmet AND branch widened the cnecs to
+  # secure to all the cnecs of the state, the PST would shift down to secure "BBE2AA1  FFR3AA1  1" instead.
+    Given network file is "epic15/TestCase12NodesWithSwitch.uct"
+    Given crac file is "extra_features/Crac_AUTO_SWITCH_5.json"
+    Given configuration file is "common/RaoParameters_posMargin_ampere.json"
+    When I launch rao
+    Then 1 remedial actions are used in preventive
+    Then the remedial action "pra_close_de3" is used in preventive
+    Then 1 remedial actions are used after "Defaut FR1 FR2" at "auto"
+    Then the remedial action "ara_pst_be" is used after "Defaut FR1 FR2" at "auto"
+    Then the tap of PstRangeAction "ara_pst_be" should be 5 after "Defaut FR1 FR2" at "auto"
+    Then the margin on cnec "NNL1AA1  NNL2AA1  1 - Defaut FR1 FR2 - auto" after ARA should be 2.0 A
+    Then the margin on cnec "BBE2AA1  FFR3AA1  1 - Defaut FR1 FR2 - auto" after ARA should be -149.6 A
+    Then its security status should be "UNSECURED"
+    Then the worst margin is -149.6 A

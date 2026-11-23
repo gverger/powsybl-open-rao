@@ -61,6 +61,8 @@ import static org.mockito.Mockito.when;
  * @author Peter Mitri {@literal <peter.mitri at rte-france.com>}
  */
 class AutomatonSimulatorTest {
+    private static final String OPEN_SWITCH_ID = "DDE3AA11 DDE4AA11 1";
+    private static final String CLOSED_SWITCH_ID = "BBE1AA11 BBE4AA11 1";
     private AutomatonSimulator automatonSimulator;
 
     private Crac crac;
@@ -292,7 +294,7 @@ class AutomatonSimulatorTest {
             .withSpeed(1)
             .newAndUsageRule()
                 .newOnContingencyStateUsageRule().withContingency("contingency1").withInstant(AUTO_INSTANT_ID).add()
-                .newOnSwitchStateUsageRule().withInstant(AUTO_INSTANT_ID).withNetworkElement("switch").withExpectedOpen(true).add()
+                .newOnSwitchStateUsageRule().withInstant(AUTO_INSTANT_ID).withNetworkElement(OPEN_SWITCH_ID).withExpectedOpen(true).add()
                 .add()
             .withInitialTap(0).withTapToAngleConversionMap(Map.of(0, -100., 1, 100.))
             .add();
@@ -343,7 +345,7 @@ class AutomatonSimulatorTest {
             .withNetworkElement("ra-nested-ne")
             .withSpeed(1)
             .newAndUsageRule()
-                .newOnSwitchStateUsageRule().withInstant(AUTO_INSTANT_ID).withNetworkElement("switch").withExpectedOpen(true).add()
+                .newOnSwitchStateUsageRule().withInstant(AUTO_INSTANT_ID).withNetworkElement(OPEN_SWITCH_ID).withExpectedOpen(true).add()
                 .newOrUsageRule()
                     .newOnInstantUsageRule().withInstant(PREVENTIVE_INSTANT_ID).add()
                     .newOnConstraintUsageRule().withInstant(AUTO_INSTANT_ID).withCnec("cnec2").add()
@@ -352,6 +354,58 @@ class AutomatonSimulatorTest {
             .withInitialTap(0).withTapToAngleConversionMap(Map.of(0, -100., 1, 100.))
             .add();
         assertEquals(Set.of(cnec2), automatonSimulator.gatherFlowCnecsForAutoRangeAction(raNested, autoState, network));
+    }
+
+    @Test
+    void testGatherCnecsIgnoresUnsatisfiedOrBranch() {
+        // the unrestricted AND branch is not satisfied (the switch is closed): only the OnConstraint branch is considered
+        RangeAction<?> raUnsatisfiedUnrestrictedBranch = crac.newPstRangeAction()
+            .withId("ra-unsatisfied-unrestricted-branch")
+            .withNetworkElement("ra-unsatisfied-unrestricted-branch-ne")
+            .withSpeed(1)
+            .newOrUsageRule()
+                .newAndUsageRule()
+                    .newOnContingencyStateUsageRule().withContingency("contingency1").withInstant(AUTO_INSTANT_ID).add()
+                    .newOnSwitchStateUsageRule().withInstant(AUTO_INSTANT_ID).withNetworkElement(CLOSED_SWITCH_ID).withExpectedOpen(true).add()
+                    .add()
+                .newOnConstraintUsageRule().withInstant(AUTO_INSTANT_ID).withCnec("cnec1").add()
+                .add()
+            .withInitialTap(0).withTapToAngleConversionMap(Map.of(0, -100., 1, 100.))
+            .add();
+        assertEquals(Set.of(cnec1), automatonSimulator.gatherFlowCnecsForAutoRangeAction(raUnsatisfiedUnrestrictedBranch, autoState, network));
+
+        // the restricted AND branch is not satisfied (the switch is closed): its flow cnec is not considered
+        RangeAction<?> raUnsatisfiedRestrictedBranch = crac.newPstRangeAction()
+            .withId("ra-unsatisfied-restricted-branch")
+            .withNetworkElement("ra-unsatisfied-restricted-branch-ne")
+            .withSpeed(1)
+            .newOrUsageRule()
+                .newAndUsageRule()
+                    .newOnSwitchStateUsageRule().withInstant(AUTO_INSTANT_ID).withNetworkElement(CLOSED_SWITCH_ID).withExpectedOpen(true).add()
+                    .newOnConstraintUsageRule().withInstant(AUTO_INSTANT_ID).withCnec("cnec2").add()
+                    .add()
+                .newOnConstraintUsageRule().withInstant(AUTO_INSTANT_ID).withCnec("cnec1").add()
+                .add()
+            .withInitialTap(0).withTapToAngleConversionMap(Map.of(0, -100., 1, 100.))
+            .add();
+        assertEquals(Set.of(cnec1), automatonSimulator.gatherFlowCnecsForAutoRangeAction(raUnsatisfiedRestrictedBranch, autoState, network));
+    }
+
+    @Test
+    void testGatherCnecsKeepsFlowConstraintsWhetherViolatedOrNot() {
+        // flow constraints are what the automaton acts on: their cnecs are all considered, so that shifting
+        // the automaton does not violate one of them and re-activate it
+        RangeAction<?> raOrConstraints = crac.newPstRangeAction()
+            .withId("ra-or-constraints")
+            .withNetworkElement("ra-or-constraints-ne")
+            .withSpeed(1)
+            .newOrUsageRule()
+                .newOnConstraintUsageRule().withInstant(AUTO_INSTANT_ID).withCnec("cnec1").add()
+                .newOnConstraintUsageRule().withInstant(AUTO_INSTANT_ID).withCnec("cnec2").add()
+                .add()
+            .withInitialTap(0).withTapToAngleConversionMap(Map.of(0, -100., 1, 100.))
+            .add();
+        assertEquals(Set.of(cnec1, cnec2), automatonSimulator.gatherFlowCnecsForAutoRangeAction(raOrConstraints, autoState, network));
     }
 
     @Test

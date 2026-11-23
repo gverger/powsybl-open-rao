@@ -488,14 +488,16 @@ public final class AutomatonSimulator {
     /**
      * Returns the flow cnecs a usage rule is restricted to, or an empty Optional if the usage rule is not
      * restricted to some flow cnecs (OnInstant, OnContingencyState, OnSwitchState), in which case all the
-     * flow cnecs of the state must be considered. A usage rule not defined for the state is restricted to no flow cnec.
+     * flow cnecs of the state must be considered. A usage rule that is not met (not defined for the state, or
+     * with a condition on the network that is not met, see {@link RaoUtil#isUsageRuleMetIgnoringFlowConstraints})
+     * is restricted to no flow cnec: it did not trigger the automaton and cannot widen the flow cnecs to secure.
      */
     private static Optional<Set<FlowCnec>> gatherFlowCnecsForUsageRule(UsageRule usageRule,
                                                                      RemedialAction<?> remedialAction,
                                                                      State automatonState,
                                                                      Set<FlowCnec> stateFlowCnecs,
                                                                      Network network) {
-        if (!usageRule.isDefinedForState(automatonState)) {
+        if (!RaoUtil.isUsageRuleMetIgnoringFlowConstraints(usageRule, automatonState, network)) {
             return Optional.of(Set.of());
         } else if (usageRule instanceof AndUsageRule andUsageRule) {
             return gatherFlowCnecsForUsageRules(andUsageRule.getUsageRules(), false, remedialAction, automatonState, stateFlowCnecs, network);
