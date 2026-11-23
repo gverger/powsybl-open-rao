@@ -35,8 +35,10 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.powsybl.openrao.data.crac.io.json.deserializers.CracDeserializer.LOGGER;
 
@@ -456,12 +458,11 @@ public final class JsonSerializationConstants {
             if (!o1.getClass().equals(o2.getClass())) {
                 return o1.getClass().toString().compareTo(o2.getClass().toString());
             }
-            if (o1 instanceof AndUsageRule || o1 instanceof OrUsageRule) {
-                // AndUsageRule/OrUsageRule have no single Instant (their combined UsageRules may each be
-                // defined at a different Instant) and no natural single id to sort on either; fall back to
-                // a deterministic (id-string-based) hashcode so that serialization order stays stable
-                // across runs.
-                return Integer.compare(o1.hashCode(), o2.hashCode());
+            if (o1 instanceof AndUsageRule and1) {
+                return compareUsageRules(and1.getUsageRules(), ((AndUsageRule) o2).getUsageRules());
+            }
+            if (o1 instanceof OrUsageRule or1) {
+                return compareUsageRules(or1.getUsageRules(), ((OrUsageRule) o2).getUsageRules());
             }
             SingleInstantUsageRule s1 = (SingleInstantUsageRule) o1;
             SingleInstantUsageRule s2 = (SingleInstantUsageRule) o2;
@@ -481,9 +482,23 @@ public final class JsonSerializationConstants {
                 return oc1.getCnec().getId().compareTo(((OnConstraint<?>) o2).getCnec().getId());
             }
             if (o1 instanceof OnSwitchState oss1) {
-                return oss1.getSwitchElement().getId().compareTo(((OnSwitchState) o2).getSwitchElement().getId());
+                OnSwitchState oss2 = (OnSwitchState) o2;
+                int switchComparison = oss1.getSwitchElement().getId().compareTo(oss2.getSwitchElement().getId());
+                return switchComparison != 0 ? switchComparison : Boolean.compare(oss1.isExpectedOpen(), oss2.isExpectedOpen());
             }
             throw new OpenRaoException(String.format("Unknown usage rule type: %s", o1.getClass()));
+        }
+
+        private int compareUsageRules(Set<UsageRule> usageRules1, Set<UsageRule> usageRules2) {
+            List<UsageRule> sorted1 = usageRules1.stream().sorted(this).toList();
+            List<UsageRule> sorted2 = usageRules2.stream().sorted(this).toList();
+            for (int i = 0; i < Math.min(sorted1.size(), sorted2.size()); i++) {
+                int comparison = compare(sorted1.get(i), sorted2.get(i));
+                if (comparison != 0) {
+                    return comparison;
+                }
+            }
+            return Integer.compare(sorted1.size(), sorted2.size());
         }
     }
 

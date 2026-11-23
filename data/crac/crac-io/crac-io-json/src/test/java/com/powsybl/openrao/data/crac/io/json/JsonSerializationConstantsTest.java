@@ -13,15 +13,19 @@ import com.powsybl.openrao.commons.OpenRaoException;
 import com.powsybl.openrao.commons.Unit;
 import com.powsybl.openrao.data.crac.api.Instant;
 import com.powsybl.openrao.data.crac.api.InstantKind;
+import com.powsybl.openrao.data.crac.api.NetworkElement;
 import com.powsybl.openrao.data.crac.api.State;
 import com.powsybl.openrao.data.crac.api.cnec.AngleCnec;
 import com.powsybl.openrao.data.crac.api.cnec.FlowCnec;
 import com.powsybl.openrao.data.crac.api.cnec.VoltageCnec;
 import com.powsybl.openrao.data.crac.api.threshold.BranchThreshold;
+import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.OnConstraint;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyState;
 import com.powsybl.openrao.data.crac.api.usagerule.OnFlowConstraintInCountry;
 import com.powsybl.openrao.data.crac.api.usagerule.OnInstant;
+import com.powsybl.openrao.data.crac.api.usagerule.OnSwitchState;
+import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.SingleInstantUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.UsageRule;
 import org.junit.jupiter.api.Assertions;
@@ -30,6 +34,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -185,6 +190,66 @@ class JsonSerializationConstantsTest {
         assertTrue(comparator.compare(ofc2, ofcc1) < 0);
         assertTrue(comparator.compare(oac1, ocs2) < 0);
         assertTrue(comparator.compare(oac1, ovc2) >= 0);
+    }
+
+    private static OnSwitchState mockOnSwitchState(Instant instant, String switchId, boolean expectedOpen) {
+        OnSwitchState usageRule = mock(OnSwitchState.class);
+        NetworkElement switchElement = mock(NetworkElement.class);
+        when(switchElement.getId()).thenReturn(switchId);
+        when(usageRule.getSwitchElement()).thenReturn(switchElement);
+        when(usageRule.isExpectedOpen()).thenReturn(expectedOpen);
+        when(usageRule.getInstant()).thenReturn(instant);
+        return usageRule;
+    }
+
+    private static AndUsageRule mockAnd(UsageRule... usageRules) {
+        AndUsageRule andUsageRule = mock(AndUsageRule.class);
+        when(andUsageRule.getUsageRules()).thenReturn(Set.of(usageRules));
+        return andUsageRule;
+    }
+
+    private static OrUsageRule mockOr(UsageRule... usageRules) {
+        OrUsageRule orUsageRule = mock(OrUsageRule.class);
+        when(orUsageRule.getUsageRules()).thenReturn(Set.of(usageRules));
+        return orUsageRule;
+    }
+
+    @Test
+    void testUsageRuleComparatorOnSwitchState() {
+        Instant curativeInstant = mock(Instant.class);
+        JsonSerializationConstants.UsageRuleComparator comparator = new JsonSerializationConstants.UsageRuleComparator();
+
+        UsageRule switchAClosed = mockOnSwitchState(curativeInstant, "switchA", false);
+        UsageRule switchAOpen = mockOnSwitchState(curativeInstant, "switchA", true);
+        UsageRule switchBClosed = mockOnSwitchState(curativeInstant, "switchB", false);
+
+        assertEquals(0, comparator.compare(switchAOpen, mockOnSwitchState(curativeInstant, "switchA", true)));
+        assertTrue(comparator.compare(switchAClosed, switchAOpen) < 0);
+        assertTrue(comparator.compare(switchAOpen, switchAClosed) > 0);
+        assertTrue(comparator.compare(switchAOpen, switchBClosed) < 0);
+    }
+
+    @Test
+    void testUsageRuleComparatorGates() {
+        Instant curativeInstant = mock(Instant.class);
+        JsonSerializationConstants.UsageRuleComparator comparator = new JsonSerializationConstants.UsageRuleComparator();
+
+        UsageRule cnecA = mockUsageRule(curativeInstant, null, "cnecA", null, null, null);
+        UsageRule cnecB = mockUsageRule(curativeInstant, null, "cnecB", null, null, null);
+        UsageRule cnecC = mockUsageRule(curativeInstant, null, "cnecC", null, null, null);
+
+        // same usage rules, whatever their order in the set
+        assertEquals(0, comparator.compare(mockAnd(cnecA, cnecB), mockAnd(cnecB, cnecA)));
+        assertTrue(comparator.compare(mockAnd(cnecA, cnecB), mockAnd(cnecA, cnecC)) < 0);
+        assertTrue(comparator.compare(mockAnd(cnecA, cnecC), mockAnd(cnecA, cnecB)) > 0);
+        // prefix comes first
+        assertTrue(comparator.compare(mockOr(cnecA), mockOr(cnecA, cnecB)) < 0);
+        assertTrue(comparator.compare(mockOr(cnecA, cnecB), mockOr(cnecA)) > 0);
+        assertEquals(0, comparator.compare(mockOr(cnecA, mockAnd(cnecB, cnecC)), mockOr(mockAnd(cnecC, cnecB), cnecA)));
+        assertTrue(comparator.compare(mockOr(cnecA, mockAnd(cnecA, cnecB)), mockOr(cnecA, mockAnd(cnecA, cnecC))) < 0);
+        UsageRule switchAClosed = mockOnSwitchState(curativeInstant, "switchA", false);
+        UsageRule switchAOpen = mockOnSwitchState(curativeInstant, "switchA", true);
+        assertTrue(comparator.compare(mockAnd(cnecA, switchAClosed), mockAnd(cnecA, switchAOpen)) < 0);
     }
 
     @Test
