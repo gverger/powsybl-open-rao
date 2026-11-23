@@ -19,6 +19,8 @@ import com.powsybl.openrao.data.crac.api.cnec.AngleCnec;
 import com.powsybl.openrao.data.crac.api.cnec.FlowCnec;
 import com.powsybl.openrao.data.crac.api.cnec.VoltageCnec;
 import com.powsybl.openrao.data.crac.api.rangeaction.PstRangeAction;
+import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRule;
+import com.powsybl.openrao.data.crac.api.usagerule.OrUsageRule;
 import com.powsybl.openrao.data.crac.api.usagerule.SingleInstantUsageRule;
 import com.powsybl.openrao.data.raoresult.api.ComputationStatus;
 import com.powsybl.openrao.data.raoresult.api.RaoResult;
@@ -28,6 +30,7 @@ import com.powsybl.openrao.raoapi.parameters.extensions.LoadFlowAndSensitivityPa
 import com.powsybl.openrao.raoapi.parameters.extensions.OpenRaoSearchTreeParameters;
 import com.powsybl.sensitivity.SensitivityAnalysisParameters;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -58,6 +61,7 @@ class RaoResultHelperTest {
     private PstRangeAction pstRangeActionBe;
     private FlowCnec curativeFlowCnecBe;
     private RaoResult raoResult;
+    private RemedialAction<?> curativeRaBe;
 
     @BeforeEach
     void setUp() {
@@ -81,16 +85,16 @@ class RaoResultHelperTest {
 
         pstRangeActionBe = mock(PstRangeAction.class);
         when(pstRangeActionBe.getOperator()).thenReturn("BE");
-        SingleInstantUsageRule beUsageRule = mock(SingleInstantUsageRule.class);
-        when(beUsageRule.getInstant()).thenReturn(preventiveInstant); // Not curative
+        SingleInstantUsageRule beUsageRule = mock(SingleInstantUsageRule.class, CALLS_REAL_METHODS);
+        doReturn(preventiveInstant).when(beUsageRule).getInstant(); // Not curative
         when(pstRangeActionBe.getUsageRules()).thenReturn(Collections.singleton(beUsageRule));
 
         curativeFlowCnecBe = mockFlowCnec("curativeFlowBe", curativeState, "BE");
         // For curative RA of BE, we need a RemedialAction with a curative usage rule
-        RemedialAction<?> curativeRaBe = mock(RemedialAction.class);
+        curativeRaBe = mock(RemedialAction.class);
         when(curativeRaBe.getOperator()).thenReturn("BE");
-        SingleInstantUsageRule curativeUsageRuleBe = mock(SingleInstantUsageRule.class);
-        when(curativeUsageRuleBe.getInstant()).thenReturn(curativeInstant);
+        SingleInstantUsageRule curativeUsageRuleBe = mock(SingleInstantUsageRule.class, CALLS_REAL_METHODS);
+        doReturn(curativeInstant).when(curativeUsageRuleBe).getInstant();
         when(curativeRaBe.getUsageRules()).thenReturn(Collections.singleton(curativeUsageRuleBe));
 
         when(crac.getFlowCnecs()).thenReturn(new HashSet<>(Arrays.asList(preventiveFlowCnecFr, curativeFlowCnecFr, curativeFlowCnecBe)));
@@ -235,4 +239,34 @@ class RaoResultHelperTest {
         assertThrows(OpenRaoException.class, () -> isSecure(raoResult, crac, raoParameters));
     }
 
+    private void mockOnlyCurativeBeCnecInsecure() {
+        doReturn(1.0).when(raoResult).getMargin(any(), any(FlowCnec.class), any());
+        doReturn(-1.0).when(raoResult).getMargin(any(), eq(curativeFlowCnecBe), any());
+    }
+
+    private SingleInstantUsageRule mockLeafUsageRule(Instant instant) {
+        SingleInstantUsageRule usageRule = mock(SingleInstantUsageRule.class, CALLS_REAL_METHODS);
+        doReturn(instant).when(usageRule).getInstant();
+        return usageRule;
+    }
+
+    @Test
+    void testTsoWithCurativeRemedialActionIsMonitored() {
+        mockOnlyCurativeBeCnecInsecure();
+        assertFalse(isSecure(raoResult, crac, true, Unit.MEGAWATT, PhysicalParameter.FLOW));
+    }
+
+    @Test
+    void testTsoWhoseGatesCanOnlyBeDefinedInPreventiveHasNoCurativeRemedialAction() {
+        // AND(preventive, OR(preventive, curative)) can only be defined at the preventive instant
+        OrUsageRule orUsageRule = mock(OrUsageRule.class, CALLS_REAL_METHODS);
+        doReturn(Set.of(mockLeafUsageRule(preventiveInstant), mockLeafUsageRule(curativeInstant))).when(orUsageRule).getUsageRules();
+        AndUsageRule andUsageRule = mock(AndUsageRule.class, CALLS_REAL_METHODS);
+        doReturn(Set.of(mockLeafUsageRule(preventiveInstant), orUsageRule)).when(andUsageRule).getUsageRules();
+        doReturn(Set.of(andUsageRule)).when(curativeRaBe).getUsageRules();
+
+        mockOnlyCurativeBeCnecInsecure();
+        // BE has no curative remedial action: its curative cnec is not taken into account
+        assertTrue(isSecure(raoResult, crac, true, Unit.MEGAWATT, PhysicalParameter.FLOW));
+    }
 }

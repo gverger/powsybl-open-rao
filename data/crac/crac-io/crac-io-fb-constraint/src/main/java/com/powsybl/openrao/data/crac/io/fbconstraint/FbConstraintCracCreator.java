@@ -12,6 +12,7 @@ import com.powsybl.iidm.network.Network;
 import com.powsybl.iidm.network.TwoSides;
 import com.powsybl.openrao.data.crac.api.Crac;
 import com.powsybl.openrao.data.crac.api.Identifiable;
+import com.powsybl.openrao.data.crac.api.Instant;
 import com.powsybl.openrao.data.crac.api.InstantKind;
 import com.powsybl.openrao.data.crac.api.RemedialAction;
 import com.powsybl.openrao.data.crac.api.parameters.CracCreationParameters;
@@ -304,7 +305,7 @@ class FbConstraintCracCreator {
 
     private static Optional<UsageRule> getPreventiveUsageRule(final Set<UsageRule> usageRules) {
         return usageRules.stream()
-            .filter(usageRule -> UsageRule.flatten(usageRule).anyMatch(leaf -> leaf.getInstant().isPreventive()))
+            .filter(usageRule -> usageRule.getInstants().stream().anyMatch(Instant::isPreventive))
             .findFirst();
     }
 
@@ -314,7 +315,7 @@ class FbConstraintCracCreator {
         // contingency listed in the afterCoList property of the ComplexVariant.
         // As there is no other type of usage rules for curative HVDC remedial actions, we can parse OnContingencyState usage rules only to list contingencies.
         return usageRules.stream()
-            .filter(usageRule -> UsageRule.flatten(usageRule).anyMatch(leaf -> leaf.getInstant().isCurative()))
+            .filter(usageRule -> usageRule.getInstants().stream().anyMatch(Instant::isCurative))
             .filter(OnContingencyState.class::isInstance)
             .map(OnContingencyState.class::cast)
             .map(ur -> ur.getState().getContingency().orElse(null))

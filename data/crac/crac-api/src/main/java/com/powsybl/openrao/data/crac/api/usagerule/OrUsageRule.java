@@ -7,9 +7,11 @@
 
 package com.powsybl.openrao.data.crac.api.usagerule;
 
+import com.powsybl.openrao.data.crac.api.Instant;
 import com.powsybl.openrao.data.crac.api.State;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * The OrUsageRule is a gate logic UsageRule, defined as the disjunction of a set of other UsageRules
@@ -19,7 +21,8 @@ import java.util.Set;
  *
  * The UsageRules composing an OrUsageRule are not required to share the same Instant: e.g.
  * OnConstraint(preventive, cnec1) OR OnContingencyState(curative, contingency1) is a valid OrUsageRule.
- * This is why OrUsageRule is not a {@link SingleInstantUsageRule}: it has no single Instant of its own.
+ * This is why OrUsageRule is not a {@link SingleInstantUsageRule}: it is defined at the union of the
+ * Instants of its UsageRules (see {@link #getInstants()}).
  *
  * @author Guillaume Verger {@literal <guillaume.verger at artelys.com>}
  */
@@ -28,6 +31,13 @@ public interface OrUsageRule extends UsageRule {
      * Get the UsageRules combined by this OrUsageRule
      */
     Set<UsageRule> getUsageRules();
+
+    @Override
+    default Set<Instant> getInstants() {
+        return getUsageRules().stream()
+            .flatMap(usageRule -> usageRule.getInstants().stream())
+            .collect(Collectors.toSet());
+    }
 
     default boolean isDefinedForState(State state) {
         return getUsageRules().stream().anyMatch(usageRule -> usageRule.isDefinedForState(state));

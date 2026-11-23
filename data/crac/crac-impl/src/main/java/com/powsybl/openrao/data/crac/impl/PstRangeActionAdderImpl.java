@@ -8,6 +8,7 @@
 package com.powsybl.openrao.data.crac.impl;
 
 import com.powsybl.openrao.commons.OpenRaoException;
+import com.powsybl.openrao.data.crac.api.Instant;
 import com.powsybl.openrao.data.crac.api.NetworkElement;
 import com.powsybl.openrao.data.crac.api.range.RangeType;
 import com.powsybl.openrao.data.crac.api.range.TapRange;
@@ -125,7 +126,7 @@ public class PstRangeActionAdderImpl extends AbstractRemedialActionAdder<PstRang
     }
 
     private boolean isPreventiveUsageRule(UsageRule usageRule) {
-        return UsageRule.flatten(usageRule).allMatch(leaf -> leaf.getInstant().isPreventive());
+        return usageRule.getInstants().stream().allMatch(Instant::isPreventive);
     }
 
     private List<TapRange> checkRanges() {
@@ -184,7 +185,7 @@ public class PstRangeActionAdderImpl extends AbstractRemedialActionAdder<PstRang
 
     void checkAutoUsageRules() {
         usageRules.forEach(usageRule -> {
-            if (UsageRule.flatten(usageRule).anyMatch(leaf -> leaf.getInstant().isAuto()) && Objects.isNull(speed)) {
+            if (usageRule.getInstants().stream().anyMatch(Instant::isAuto) && Objects.isNull(speed)) {
                 throw new OpenRaoException("Cannot create an AUTO Pst range action without speed defined");
             }
         });

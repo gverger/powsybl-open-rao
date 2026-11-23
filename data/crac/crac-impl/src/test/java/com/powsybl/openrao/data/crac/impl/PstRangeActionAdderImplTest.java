@@ -328,4 +328,48 @@ class PstRangeActionAdderImplTest {
             .add();
         assertTrue(pstRangeAction.getRanges().isEmpty());
     }
+
+    @Test
+    void testPraRelativeToPreviousInstantRangeWithGatesOnlyDefinedInPreventive() {
+        crac.newInstant("curative", InstantKind.CURATIVE);
+        // AND(preventive, OR(preventive, curative)) can only be defined at the preventive instant
+        PstRangeAction pstRangeAction = crac.newPstRangeAction()
+            .withId("id1")
+            .withNetworkElement(networkElementId)
+            .newTapRange()
+            .withMinTap(-10).withMaxTap(10).withRangeType(RangeType.RELATIVE_TO_PREVIOUS_INSTANT).add()
+            .newAndUsageRule()
+                .newOnInstantUsageRule().withInstant(PREVENTIVE_INSTANT_ID).add()
+                .newOrUsageRule()
+                    .newOnInstantUsageRule().withInstant(PREVENTIVE_INSTANT_ID).add()
+                    .newOnInstantUsageRule().withInstant("curative").add()
+                    .add()
+                .add()
+            .withInitialTap(-2)
+            .withTapToAngleConversionMap(validTapToAngleConversionMap)
+            .add();
+        assertTrue(pstRangeAction.getRanges().isEmpty());
+    }
+
+    @Test
+    void testGatesWithUnreachableAutoLeafDoNotRequireSpeed() {
+        crac.newInstant("curative", InstantKind.CURATIVE);
+        // AND(curative, OR(auto, curative)) can only be defined at the curative instant: no speed needed
+        PstRangeAction pstRangeAction = crac.newPstRangeAction()
+            .withId("id1")
+            .withOperator("BE")
+            .withNetworkElement(networkElementId)
+            .newTapRange().withMinTap(-10).withMaxTap(10).withRangeType(RangeType.ABSOLUTE).add()
+            .newAndUsageRule()
+                .newOnInstantUsageRule().withInstant("curative").add()
+                .newOrUsageRule()
+                    .newOnInstantUsageRule().withInstant(AUTO_INSTANT_ID).add()
+                    .newOnInstantUsageRule().withInstant("curative").add()
+                    .add()
+                .add()
+            .withInitialTap(1)
+            .withTapToAngleConversionMap(validTapToAngleConversionMap)
+            .add();
+        assertTrue(pstRangeAction.getSpeed().isEmpty());
+    }
 }

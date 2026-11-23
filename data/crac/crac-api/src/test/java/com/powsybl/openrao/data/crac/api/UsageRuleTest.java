@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -132,6 +133,20 @@ class UsageRuleTest {
         }
     }
 
+    public static class AndUsageRuleMock implements AndUsageRule {
+
+        private final Set<UsageRule> usageRules;
+
+        AndUsageRuleMock(Set<UsageRule> usageRules) {
+            this.usageRules = usageRules;
+        }
+
+        @Override
+        public Set<UsageRule> getUsageRules() {
+            return usageRules;
+        }
+    }
+
     @Test
     void testOnInstantDefinedForState() {
         OnInstant preventiveOnInstant = new OnInstantMock(preventiveInstant);
@@ -217,5 +232,25 @@ class UsageRuleTest {
         assertFalse(curativeOnFlowConstraintInCountryWithContingency.isDefinedForState(preventiveState));
         assertTrue(curativeOnFlowConstraintInCountryWithContingency.isDefinedForState(curativeState1));
         assertFalse(curativeOnFlowConstraintInCountryWithContingency.isDefinedForState(curativeState2));
+    }
+
+    @Test
+    void testGetInstants() {
+        Instant autoInstant = new InstantTest.InstantImplTest(2, InstantKind.AUTO);
+        UsageRule preventiveLeaf = new OnInstantMock(preventiveInstant);
+        UsageRule curativeLeaf = new OnContingencyStateMock(curativeState1);
+        UsageRule autoLeaf = new OnInstantMock(autoInstant);
+
+        // leaf: its own instant
+        assertEquals(Set.of(preventiveInstant), preventiveLeaf.getInstants());
+        // OR: union
+        assertEquals(Set.of(preventiveInstant, curativeInstant), new OrUsageRuleMock(Set.of(preventiveLeaf, curativeLeaf)).getInstants());
+        // AND: intersection
+        assertEquals(Set.of(curativeInstant), new AndUsageRuleMock(Set.of(curativeLeaf, new OnInstantMock(curativeInstant))).getInstants());
+        assertEquals(Set.of(), new AndUsageRuleMock(Set.of(preventiveLeaf, curativeLeaf)).getInstants());
+        // nested: AND(curative, OR(preventive, curative)) -> curative only
+        assertEquals(Set.of(curativeInstant), new AndUsageRuleMock(Set.of(curativeLeaf, new OrUsageRuleMock(Set.of(preventiveLeaf, curativeLeaf)))).getInstants());
+        // nested: OR(AND(preventive, curative), auto) -> auto only, the dead AND contributes nothing
+        assertEquals(Set.of(autoInstant), new OrUsageRuleMock(Set.of(new AndUsageRuleMock(Set.of(preventiveLeaf, curativeLeaf)), autoLeaf)).getInstants());
     }
 }

@@ -9,6 +9,8 @@ package com.powsybl.openrao.data.crac.api.usagerule;
 
 import com.powsybl.openrao.data.crac.api.Instant;
 
+import java.util.Set;
+
 /**
  * A UsageRule that is defined at a single, well-identified Instant. Every leaf UsageRule (OnInstant,
  * OnContingencyState, OnConstraint, OnFlowConstraintInCountry, OnSwitchState) is a
@@ -22,4 +24,9 @@ public interface SingleInstantUsageRule extends UsageRule {
      * Get the Instant of the usage rule
      */
     Instant getInstant();
+
+    @Override
+    default Set<Instant> getInstants() {
+        return Set.of(getInstant());
+    }
 }

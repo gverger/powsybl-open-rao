@@ -228,4 +228,25 @@ class HvdcRangeActionAdderImplTest {
         OpenRaoException exception = assertThrows(OpenRaoException.class, hvdcRangeActionAdder::add);
         assertEquals("Cannot add HvdcRangeAction without a range. Please use newRange()", exception.getMessage());
     }
+
+    @Test
+    void testGatesWithUnreachableAutoLeafDoNotRequireSpeed() {
+        crac.newInstant("curative", InstantKind.CURATIVE);
+        // AND(curative, OR(auto, curative)) can only be defined at the curative instant: no speed needed
+        HvdcRangeAction hvdcRangeAction = crac.newHvdcRangeAction()
+            .withId("id1")
+            .withOperator("BE")
+            .withNetworkElement(networkElementId)
+            .withInitialSetpoint(1.0)
+            .newRange().withMin(-5).withMax(10).add()
+            .newAndUsageRule()
+                .newOnInstantUsageRule().withInstant("curative").add()
+                .newOrUsageRule()
+                    .newOnInstantUsageRule().withInstant(AUTO_INSTANT_ID).add()
+                    .newOnInstantUsageRule().withInstant("curative").add()
+                    .add()
+                .add()
+            .add();
+        assertTrue(hvdcRangeAction.getSpeed().isEmpty());
+    }
 }

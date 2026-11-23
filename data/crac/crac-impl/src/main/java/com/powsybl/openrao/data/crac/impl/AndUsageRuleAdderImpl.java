@@ -7,6 +7,7 @@
 
 package com.powsybl.openrao.data.crac.impl;
 
+import com.powsybl.openrao.commons.OpenRaoException;
 import com.powsybl.openrao.data.crac.api.usagerule.AndUsageRuleAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnConstraintAdder;
 import com.powsybl.openrao.data.crac.api.usagerule.OnContingencyStateAdder;
@@ -76,7 +77,11 @@ public class AndUsageRuleAdderImpl<T extends UsageRuleGateAdderOwner> implements
         AdderUtils.assertAttributeNotEmpty(usageRules, CLASS_NAME, "usage rule",
             "newOnInstantUsageRule(), newOnContingencyStateUsageRule(), newOnConstraintUsageRule(), "
                 + "newOnFlowConstraintInCountryUsageRule(), newOnSwitchStateUsageRule() or newOrUsageRule()");
-        owner.addUsageRule(new AndUsageRuleImpl(usageRules));
+        AndUsageRuleImpl andUsageRule = new AndUsageRuleImpl(usageRules);
+        if (andUsageRule.getInstants().isEmpty()) {
+            throw new OpenRaoException("Cannot add AndUsageRule: its usage rules are defined at different instants, so it can never be activated. Use an OrUsageRule instead.");
+        }
+        owner.addUsageRule(andUsageRule);
         return owner;
     }
 }

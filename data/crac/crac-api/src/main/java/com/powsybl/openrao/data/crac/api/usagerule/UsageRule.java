@@ -7,8 +7,10 @@
 
 package com.powsybl.openrao.data.crac.api.usagerule;
 
+import com.powsybl.openrao.data.crac.api.Instant;
 import com.powsybl.openrao.data.crac.api.State;
 
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -19,12 +21,23 @@ import java.util.stream.Stream;
  * single Instant: see {@link SingleInstantUsageRule}. {@link AndUsageRule} and {@link OrUsageRule} are
  * gate logic combinations of other UsageRules, which may themselves be defined at different Instants
  * (e.g. an OnConstraint at "preventive" OR an OnContingencyState at "curative"), so they have no single
- * Instant of their own.
+ * Instant of their own: see {@link #getInstants()}.
  *
  * @author Viktor Terrier {@literal <viktor.terrier at rte-france.com>}
  */
 public interface UsageRule {
     boolean isDefinedForState(State state);
+
+    /**
+     * Get the Instants at which the usage rule can be defined, following the gate logic:
+     * - a {@link SingleInstantUsageRule} is defined at its own Instant only;
+     * - an {@link OrUsageRule} at the union of the Instants of its UsageRules;
+     * - an {@link AndUsageRule} at the intersection of the Instants of its UsageRules.
+     * Contrary to {@link #flatten(UsageRule)}, which returns all the leaves, the Instants of a leaf that can
+     * never take part in the gate logic (e.g. a preventive leaf ANDed with a curative one) are not returned:
+     * use this method to classify a remedial action by Instant.
+     */
+    Set<Instant> getInstants();
 
     /**
      * Recursively unfolds AndUsageRule/OrUsageRule gate logic combinations into the leaf,
