@@ -48,7 +48,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.time.OffsetDateTime;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.powsybl.openrao.commons.logs.OpenRaoLoggerProvider.TECHNICAL_LOGS;
 import static com.powsybl.openrao.tests.utils.Helpers.getFile;
 import static com.powsybl.openrao.tests.utils.Helpers.getOffsetDateTimeFromBrusselsTimestamp;
 import static com.powsybl.openrao.tests.utils.Helpers.importCrac;
@@ -372,7 +374,7 @@ public final class CommonTestData {
         if (raoParametersPath != null) {
             raoParameters = buildConfig(getFile(raoParametersPath));
         } else {
-            raoParameters = buildDefaultConfig();
+            raoParameters = applyLinearProblemCnecFilteringOverride(buildDefaultConfig());
         }
         if (overrideLinearSolver != null) {
             raoParameters.getExtension(OpenRaoSearchTreeParameters.class).getRangeActionsOptimizationParameters().getLinearOptimizationSolver()
@@ -429,6 +431,8 @@ public final class CommonTestData {
         }
     }
 
+    private static final AtomicBoolean OVERRIDE_LOGGED = new AtomicBoolean(false);
+
     private static RaoParameters buildDefaultConfig() {
         try (InputStream configStream = new FileInputStream(getFile(getResourcesPath().concat(DEFAULT_RAO_PARAMETERS_PATH)))) {
             return JsonRaoParameters.read(configStream, reportNode);
@@ -446,6 +450,26 @@ public final class CommonTestData {
         } catch (AssertionError e) {
             throw new IllegalArgumentException("Unknown parameter in configuration file", e);
         }
+        return applyLinearProblemCnecFilteringOverride(config);
+    }
+
+    /**
+     * Equivalence-check hook: when the system property openrao.tests.linearProblemCnecFiltering is set
+     * (DISABLED or SAFE_BOUNDS), it overrides linear-problem-cnec-filtering in every RAO parameters object.
+     */
+    private static RaoParameters applyLinearProblemCnecFilteringOverride(RaoParameters config) {
+        String override = System.getProperty("openrao.tests.linearProblemCnecFiltering");
+        if (override == null || override.isBlank()) {
+            return config;
+        }
+        if (!config.hasExtension(OpenRaoSearchTreeParameters.class)) {
+            config.addExtension(OpenRaoSearchTreeParameters.class, new OpenRaoSearchTreeParameters(reportNode));
+        }
+        if (!OVERRIDE_LOGGED.getAndSet(true)) {
+            TECHNICAL_LOGS.info("Forcing linear-problem-cnec-filtering={}", override);
+        }
+        config.getExtension(OpenRaoSearchTreeParameters.class).getRangeActionsOptimizationParameters()
+            .setLinearProblemCnecFiltering(SearchTreeRaoRangeActionsOptimizationParameters.LinearProblemCnecFiltering.valueOf(override.trim().toUpperCase()));
         return config;
     }
 
